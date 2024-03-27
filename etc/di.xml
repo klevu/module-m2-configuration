@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- PREFERENCES -->
+
+    <preference for="Klevu\Configuration\Api\CheckApiKeysInterface"
+                type="Klevu\Configuration\WebApi\Integration\CheckApiKeys"/>
+
+    <preference for="Klevu\Configuration\Api\Data\ApiResponseInterface"
+                type="Klevu\Configuration\WebApi\Integration\ApiResponse"/>
+
+    <preference for="Klevu\Configuration\Api\IntegrateApiKeysInterface"
+                type="Klevu\Configuration\WebApi\Integration\IntegrateApiKeys"/>
+
+    <preference for="Klevu\Configuration\Api\RemoveApiKeysInterface"
+                type="Klevu\Configuration\WebApi\Integration\RemoveApiKeys"/>
+
+    <preference for="Klevu\Configuration\Model\CurrentScopeInterface"
+                type="Klevu\Configuration\Model\CurrentScope"/>
+
+    <preference for="Klevu\Configuration\Service\Action\Sdk\AccountDetailsActionInterface"
+                type="Klevu\Configuration\Service\Action\Sdk\AccountDetailsAction"/>
+
+    <preference for="Klevu\Configuration\Service\Action\Sdk\Account\AccountFeaturesActionInterface"
+                type="Klevu\Configuration\Service\Action\Sdk\Account\AccountFeaturesAction"/>
+
+    <preference for="Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupActionInterface"
+                type="Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupAction"/>
+
+    <preference for="Klevu\Configuration\Service\Action\CacheAccountActionInterface"
+                type="Klevu\Configuration\Service\Action\CacheAccountAction"/>
+
+    <preference for="Klevu\Configuration\Service\Action\Sdk\Account\CreateAccountCredentialsActionInterface"
+                type="Klevu\Configuration\Service\Action\Sdk\Account\CreateAccountCredentialsAction"/>
+
+    <preference for="Klevu\Configuration\Service\Action\RemoveEndpointsInterface"
+                type="Klevu\Configuration\Service\Action\RemoveEndpoints"/>
+
+    <preference for="Klevu\Configuration\Service\Action\UpdateEndpointsInterface"
+                type="Klevu\Configuration\Service\Action\UpdateEndpoints"/>
+
+    <preference for="Klevu\Configuration\Service\CheckApiKeysServiceInterface"
+                type="Klevu\Configuration\Service\CheckApiKeysService"/>
+
+    <preference for="Klevu\Configuration\Service\GetAccountFeaturesServiceInterface"
+                type="Klevu\Configuration\Service\GetAccountFeaturesService"/>
+
+    <preference for="Klevu\Configuration\Service\GetBearerTokenInterface"
+                type="Klevu\Configuration\Service\GetBearerTokenService"/>
+
+    <preference for="Klevu\Configuration\Service\IntegrateApiKeysServiceInterface"
+                type="Klevu\Configuration\Service\IntegrateApiKeysService"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\ApiKeyProviderInterface"
+                type="Klevu\Configuration\Service\Provider\ApiKeyProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\ApiKeysProviderInterface"
+                type="Klevu\Configuration\Service\Provider\ApiKeysProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\AuthKeyProviderInterface"
+                type="Klevu\Configuration\Service\Provider\AuthKeyProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\AccountCacheKeyProviderInterface"
+                type="Klevu\Configuration\Service\Provider\AccountCacheKeyProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\CachedAccountProviderInterface"
+                type="Klevu\Configuration\Service\Provider\CachedAccountProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProviderInterface"
+                type="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\ScopeProviderInterface"
+                type="Klevu\Configuration\Service\Provider\ScopeProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\StoreScopeProviderInterface"
+                type="Klevu\Configuration\Service\Provider\StoreScopeProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\Modules\KlevuModuleListProviderInterface"
+                type="Klevu\Configuration\Service\Provider\Modules\KlevuModuleListProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\Modules\VersionProviderInterface"
+                type="Klevu\Configuration\Service\Provider\Modules\VersionProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\StoreLocaleCodesProviderInterface"
+                type="Klevu\Configuration\Service\Provider\StoreLocaleCodesProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\StoresProviderInterface"
+                type="Klevu\Configuration\Service\Provider\StoresProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface"
+                type="Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\WebsiteScopeProviderInterface"
+                type="Klevu\Configuration\Service\Provider\WebsiteScopeProvider"/>
+
+    <preference for="Klevu\Configuration\Service\IsStoreIntegratedServiceInterface"
+                type="Klevu\Configuration\Service\IsStoreIntegratedService"/>
+
+    <preference for="Klevu\Configuration\Service\RemoveApiKeysServiceInterface"
+                type="Klevu\Configuration\Service\RemoveApiKeysService"/>
+
+    <preference for="Klevu\Configuration\ViewModel\Config\AccountFeaturesInterface"
+                type="Klevu\Configuration\ViewModel\Config\AccountFeatures"/>
+
+    <preference for="Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface"
+                type="Klevu\PhpSDK\Service\Account\AccountFeaturesService"/>
+
+    <preference for="Klevu\PhpSDK\Api\Service\Account\AccountLookupServiceInterface"
+                type="Klevu\Configuration\Service\Account\AccountLookupService"/>
+
+    <preference for="Klevu\PhpSDK\Provider\BaseUrlsProviderInterface"
+                type="Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider"/>
+
+    <!-- VIRTUAL TYPES -->
+
+    <virtualType name="Klevu\Configuration\Service\Provider\LogFileNameProvider"
+                 type="Klevu\Logger\Service\Provider\LogFileNameProvider">
+        <arguments>
+            <argument name="baseFileName" xsi:type="string">configuration.log</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Service\IsLoggingEnabledService"
+                 type="Klevu\Logger\Service\IsLoggingEnabledService">
+        <arguments>
+            <argument name="minLogLevelConfigPath"
+                      xsi:type="string">klevu_configuration/developer/log_level_configuration</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Logger\Handler\LogIfConfigured"
+                 type="Klevu\Logger\Handler\LogIfConfigured">
+        <arguments>
+            <argument name="logFileNameProvider"
+                      xsi:type="object">Klevu\Configuration\Service\Provider\LogFileNameProvider</argument>
+            <argument name="loggingEnabledService"
+                      xsi:type="object">Klevu\Configuration\Service\IsLoggingEnabledService</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Logger\Logger"
+                 type="Klevu\Logger\Logger\Logger"> <!-- Virtual type defined in module-m2-logger/etc/di.xml -->
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="klevu_configuration_logger"
+                      xsi:type="object">Klevu\Configuration\Logger\Handler\LogIfConfigured</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- ARGUMENTS -->
+    <type name="Klevu\Configuration\Service\Action\Sdk\Account\AccountFeaturesAction">
+        <arguments>
+            <argument name="accountFeaturesService" xsi:type="object">Klevu\Configuration\Service\Account\AccountFeaturesService</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Action\Sdk\Account\CreateAccountCredentialsAction">
+        <arguments>
+            <argument name="apiKeyValidator"
+                      xsi:type="object">Klevu\PhpSDK\Validator\JsApiKeyValidator</argument>
+            <argument name="authKeyValidator"
+                      xsi:type="object">Klevu\PhpSDK\Validator\RestAuthKeyValidator</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Action\UpdateEndpoints">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Provider\Modules\VersionProvider">
+        <arguments>
+            <argument name="fileSystemDriver"
+                      xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider">
+        <arguments>
+            <argument name="fallbackBaseUrlsProvider" xsi:type="object">Klevu\PhpSDK\Provider\BaseUrlsProvider</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider">
+        <arguments>
+            <argument name="scopeIdValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeIdValidator</argument>
+            <argument name="scopeTypeValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeTypeValidator</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\Provider\StoreScopeProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\RemoveApiKeysService">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Ui\DataProvider\Integration\Form\WizardDataProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+            <argument name="scopeIdValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeIdValidator</argument>
+            <argument name="scopeTypeValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeTypeValidator</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Ui\DataProvider\Integration\Listing\StoresDataProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\ViewModel\Config\AccountFeatures">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\WebApi\Integration\CheckApiKeys">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\WebApi\Integration\IntegrateApiKeys">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <virtualType name="Klevu\Configuration\Service\Account\AccountFeaturesService"
+                 type="Klevu\PhpSDK\Service\Account\AccountFeaturesService">
+        <arguments>
+            <argument name="baseUrlsProvider" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider</argument>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+            <argument name="requestFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
+            <argument name="responseFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Klevu\Configuration\Service\Provider\Sdk\UserAgent\PlatformUserAgentProvider">
+        <arguments>
+            <argument name="systemInformationProviders" xsi:type="array">
+                <item name="magento-framework" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\SystemInformation\MagentoFrameworkProvider</item>
+                <item name="magento-inventory" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\SystemInformation\MagentoInventoryProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="Klevu\Configuration\Service\Provider\Sdk\UserAgentProvider"
+                 type="Klevu\PhpSDK\Provider\UserAgentProvider">
+        <arguments>
+            <argument name="userAgentProviders" xsi:type="array">
+                <item name="klevu-m2-search" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\PlatformUserAgentProvider</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Service\Account\AccountLookupService"
+                 type="Klevu\PhpSDK\Service\Account\AccountLookupService">
+        <arguments>
+            <argument name="baseUrlsProvider" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider</argument>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
+            <argument name="requestFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
+            <argument name="responseFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
+            <argument name="userAgentProvider" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgentProvider</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="klevu_integration_wizard_data_source"
+                      xsi:type="string">Magento\Config\Model\ResourceModel\Config\Data\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\Configuration\Service\IntegrateApiKeysService">
+        <arguments>
+            <argument name="scopeValidator"
+                      xsi:type="object">Klevu\Configuration\Validator\ScopeTypeValidator</argument>
+        </arguments>
+    </type>
+</config>
+

@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="namespace" xsi:type="string">klevu_integration_removal</item>
+            <item name="provider" xsi:type="string">klevu_integration_removal.klevu_integration_removal_data_source</item>
+        </item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <spinner>klevu_integration_auth_keys</spinner>
+        <deps>
+            <dep>klevu_integration_removal.klevu_integration_removal_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="klevu_integration_removal_data_source" component="Klevu_Configuration/js/form/removal/provider">
+        <settings>
+            <storageConfig>
+                <param name="cacheRequests" xsi:type="boolean">false</param>
+                <param name="indexField" xsi:type="string">scope_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+            <filterUrlParams>
+                <param name="scope_id">*</param>
+                <param name="scope">*</param>
+            </filterUrlParams>
+        </settings>
+        <aclResource>Klevu_Configuration::integration</aclResource>
+        <!-- Intentionally used Wizard Data Provider -->
+        <dataProvider class="Klevu\Configuration\Ui\DataProvider\Integration\Form\WizardDataProvider"
+                      name="klevu_integration_removal_data_source">
+            <settings>
+                <requestFieldName>scope_id</requestFieldName>
+                <primaryFieldName>scope_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="klevu_integration_removal_header">
+        <settings>
+            <label/>
+            <collapsible>false</collapsible>
+        </settings>
+        <container name="klevu_integration_removal_header_container">
+            <htmlContent name="klevu_integration_removal_html_content">
+                <argument name="block"
+                          xsi:type="object">Klevu\Configuration\Block\Adminhtml\Config\Integration\Removal\Header</argument>
+            </htmlContent>
+        </container>
+    </fieldset>
+    <fieldset name="klevu_remove_auth_keys">
+        <settings>
+            <label translate="true">Remove API Keys</label>
+            <collapsible>false</collapsible>
+        </settings>
+        <field name="js_api_key" formElement="input" sortOrder="10">
+            <settings>
+                <elementTmpl>ui/form/element/text</elementTmpl>
+                <label translate="true">API Key</label>
+                <imports>
+                    <link name="value">${ $.provider }:data.js_api_key</link>
+                </imports>
+            </settings>
+        </field>
+        <field name="rest_auth_key" formElement="input" sortOrder="20">
+            <settings>
+                <elementTmpl>ui/form/element/text</elementTmpl>
+                <label translate="true">Auth Key</label>
+                <imports>
+                    <link name="value">${ $.provider }:data.rest_auth_key</link>
+                </imports>
+            </settings>
+        </field>
+        <field name="bearer" formElement="hidden" sortOrder="30">
+            <settings>
+                <elementTmpl>ui/form/element/hidden</elementTmpl>
+                <imports>
+                    <link name="value">${ $.provider }:data.bearer</link>
+                </imports>
+            </settings>
+        </field>
+        <field name="scope" formElement="hidden" sortOrder="40">
+            <settings>
+                <elementTmpl>ui/form/element/hidden</elementTmpl>
+                <imports>
+                    <link name="value">${ $.provider }:data.scope</link>
+                </imports>
+            </settings>
+        </field>
+        <field name="scope_id" formElement="hidden" sortOrder="50">
+            <settings>
+                <elementTmpl>ui/form/element/hidden</elementTmpl>
+                <imports>
+                    <link name="value">${ $.provider }:data.scope_id</link>
+                </imports>
+            </settings>
+        </field>
+        <button name="remove_api_keys">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="buttonClasses" xsi:type="string">action action-primary</item>
+                    <item name="actions" xsi:type="array">
+                        <item name="0" xsi:type="array">
+                            <item name="targetName" xsi:type="string">${ $.provider }</item>
+                            <item name="actionName" xsi:type="string">removeApiKeys</item>
+                        </item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <title translate="true">Remove API Keys</title>
+            </settings>
+        </button>
+    </fieldset>
+</form>

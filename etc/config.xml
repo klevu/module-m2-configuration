@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <klevu_configuration>
+            <auth_keys>
+                <js_api_key/>
+                <rest_auth_key/>
+            </auth_keys>
+            <developer>
+                <log_level_configuration>200</log_level_configuration>
+                <url_api/>
+                <url_analytics/>
+                <url_cat_nav/>
+                <url_hostname>box.klevu.com</url_hostname>
+                <url_indexing/>
+                <url_js/>
+                <url_search/>
+                <url_tiers>tiers.klevu.com</url_tiers>
+            </developer>
+        </klevu_configuration>
+    </default>
+</config>

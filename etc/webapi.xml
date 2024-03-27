@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/klevu-configuration/check-api-keys"
+           method="POST">
+        <service class="Klevu\Configuration\Api\CheckApiKeysInterface"
+                 method="execute"/>
+        <resources>
+            <resource ref="Klevu_Configuration::integration"/>
+        </resources>
+    </route>
+    <route url="/V1/klevu-configuration/integrate-api-keys"
+           method="POST">
+        <service class="Klevu\Configuration\Api\IntegrateApiKeysInterface"
+                 method="execute"/>
+        <resources>
+            <resource ref="Klevu_Configuration::integration"/>
+        </resources>
+    </route>
+    <route url="/V1/klevu-configuration/remove-api-keys"
+           method="POST">
+        <service class="Klevu\Configuration\Api\RemoveApiKeysInterface"
+                 method="execute"/>
+        <resources>
+            <resource ref="Klevu_Configuration::integration"/>
+        </resources>
+    </route>
+</routes>

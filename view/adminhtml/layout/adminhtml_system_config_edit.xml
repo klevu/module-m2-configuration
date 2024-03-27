@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="system.config.edit">
+            <container name="klevu_integration_kmc_instructions">
+                <block name="klevu_integration_kmc_wrapper"
+                       class="Klevu\Configuration\Block\Adminhtml\Config\Integration\Kmc"/>
+            </container>
+            <container name="klevu_integration_store_listing_container" label="Klevu Integration Store List">
+                <uiComponent name="klevu_integration_store_listing" aclResource="Klevu_Configuration::integration"/>
+            </container>
+        </referenceBlock>
+    </body>
+</page>

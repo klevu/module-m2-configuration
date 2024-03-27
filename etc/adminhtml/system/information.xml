@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+
+    <group id="modules"
+           translate="label"
+           sortOrder="10"
+           showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label>Klevu Modules</label>
+        <attribute type="expanded">1</attribute>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+
+        <field id="klevu_module_versions" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <!--
+            frontend_model is a virtualType based on \Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset
+            see etc/adminhtml/di.xml for config
+            -->
+            <frontend_model>Klevu\Configuration\Block\Adminhtml\Config\Information\ModuleVersions</frontend_model>
+        </field>
+    </group>
+
+    <group id="endpoints"
+           translate="label"
+           sortOrder="10"
+           showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label>Klevu Endpoints</label>
+        <attribute type="expanded">0</attribute>
+
+        <field id="hostname"
+               type="label"
+               translate="label comment"
+               sortOrder="10"
+               showInDefault="1"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="1">
+            <config_path>klevu_configuration/developer/url_hostname</config_path>
+            <label>Hostname</label>
+            <comment>
+                <![CDATA[Hostname is used for sending store configuration parameters to Klevu.]]>
+            </comment>
+        </field>
+        <field id="api_url"
+               type="label"
+               translate="label comment"
+               sortOrder="20"
+               showInDefault="1"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="1">
+            <config_path>klevu_configuration/developer/url_api</config_path>
+            <label>API URL</label>
+            <comment>
+                <![CDATA[API URL is used for account integration with Klevu.
+                If empty the default in the PHP SDK will be used.]]>
+            </comment>
+        </field>
+        <field id="tiers_url"
+               type="label"
+               translate="label comment"
+               sortOrder="40"
+               showInDefault="0"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="0">
+            <config_path>klevu_configuration/developer/url_tiers</config_path>
+            <label>Tiers URL</label>
+            <comment>
+                <![CDATA[Tiers URL is used for retrieving information about the Klevu Plan you are signed up to.]]>
+            </comment>
+        </field>
+        <field id="url_analytics"
+               type="label"
+               translate="label comment"
+               sortOrder="50"
+               showInDefault="0"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="0">
+            <config_path>klevu_configuration/developer/url_analytics</config_path>
+            <label>Analytics URL</label>
+            <comment>
+                <![CDATA[Analytics URL is used for sending tracking data to Klevu.]]>
+            </comment>
+        </field>
+        <field id="url_indexing"
+               type="label"
+               translate="label comment"
+               sortOrder="50"
+               showInDefault="0"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="0">
+            <config_path>klevu_configuration/developer/url_indexing</config_path>
+            <label>Indexing URL</label>
+            <comment>
+                <![CDATA[Indexing URL is used for syncing data to Klevu.]]>
+            </comment>
+        </field>
+        <field id="url_js"
+               type="label"
+               translate="label comment"
+               sortOrder="50"
+               showInDefault="0"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="0">
+            <config_path>klevu_configuration/developer/url_js</config_path>
+            <label>JS URL</label>
+            <comment>
+                <![CDATA[JS URL is used for loading javascript on the frontend.]]>
+            </comment>
+        </field>
+        <field id="url_search"
+               type="label"
+               translate="label comment"
+               sortOrder="50"
+               showInDefault="0"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="0">
+            <config_path>klevu_configuration/developer/url_search</config_path>
+            <label>Search URL</label>
+            <comment>
+                <![CDATA[Search URL is used for search queries.]]>
+            </comment>
+        </field>
+    </group>
+
+    <group id="knowledge_base"
+           translate="label"
+           sortOrder="10"
+           showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label>Knowledge Base</label>
+        <attribute type="expanded">1</attribute>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+
+        <field id="klevu_module_versions" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <!--
+            frontend_model is a virtualType based on \Klevu\Configuration\Block\Adminhtml\Config\ArticleList
+            see etc/adminhtml/di.xml for config
+            -->
+            <frontend_model>Klevu\Configuration\Block\Adminhtml\Config\Information\KnowledgeBase</frontend_model>
+        </field>
+    </group>
+</config>

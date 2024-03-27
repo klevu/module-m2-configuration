@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">klevu_integration_store_listing.klevu_integration_store_listing_data_source</item>
+        </item>
+    </argument>
+    <settings>
+        <spinner>klevu_integration_store_listing_columns</spinner>
+        <deps>
+            <dep>klevu_integration_store_listing.klevu_integration_store_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="klevu_integration_store_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="cacheRequests" xsi:type="boolean">false</param>
+                <param name="indexField" xsi:type="string">scope_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+            <filterUrlParams>
+                <param name="website">*</param>
+                <param name="store">*</param>
+            </filterUrlParams>
+        </settings>
+        <aclResource>Klevu_Configuration::integration</aclResource>
+        <dataProvider class="Klevu\Configuration\Ui\DataProvider\Integration\Listing\StoresDataProvider"
+                      name="klevu_integration_store_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>config_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <columns name="klevu_integration_store_listing_columns">
+        <column name="website" sortOrder="20">
+            <settings>
+                <label translate="true">Website</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="store" sortOrder="30">
+            <settings>
+                <label translate="true">Store</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <column name="integration_message" sortOrder="40">
+            <settings>
+                <label translate="true">Status (API Key)</label>
+                <sortable>false</sortable>
+            </settings>
+        </column>
+        <actionsColumn name="actions"
+                       class="Klevu\Configuration\Ui\Component\Listing\Column\IntegrateKlevuAccount"
+                       component="Klevu_Configuration/js/components/actions"
+                       sortOrder="200">
+            <settings>
+                <label translate="true">Action</label>
+                <bodyTmpl>klevu_configuration/grid/cells/actions</bodyTmpl>
+            </settings>
+        </actionsColumn>
+    </columns>
+    <modal name="klevu_integration_wizard_modal">
+        <settings>
+            <options>
+                <option name="title" xsi:type="string" translate="true">Integrate with Klevu</option>
+            </options>
+        </settings>
+        <container name="klevu_integration_wizard_container">
+            <insertForm name="klevu_integration_wizard" component="Magento_Ui/js/form/components/insert-form">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="integrationListingProvider" xsi:type="string">ns = klevu_integration_store_listing, index = klevu_integration_store_listing</item>
+                        <item name="integrationModalProvider" xsi:type="string">${ $.parentName }</item>
+                    </item>
+                </argument>
+                <settings>
+                    <loading>false</loading>
+                    <autoRender>false</autoRender>
+                    <toolbarContainer>${ $.parentName }</toolbarContainer>
+                    <externalProvider>${ $.ns }.klevu_integration_wizard_data_source</externalProvider>
+                    <ns>klevu_integration_wizard</ns>
+                </settings>
+            </insertForm>
+        </container>
+    </modal>
+    <modal name="klevu_integration_removal_modal">
+        <settings>
+            <options>
+                <option name="title" xsi:type="string" translate="true">Remove Integration with Klevu</option>
+            </options>
+        </settings>
+        <container name="klevu_integration_removal_container">
+            <insertForm name="klevu_integration_removal" component="Magento_Ui/js/form/components/insert-form">
+                <argument name="data" xsi:type="array">
+                    <item name="config" xsi:type="array">
+                        <item name="integrationListingProvider" xsi:type="string">ns = klevu_integration_store_listing, index = klevu_integration_store_listing</item>
+                        <item name="integrationModalProvider" xsi:type="string">${ $.parentName }</item>
+                    </item>
+                </argument>
+                <settings>
+                    <loading>false</loading>
+                    <autoRender>false</autoRender>
+                    <toolbarContainer>${ $.parentName }</toolbarContainer>
+                    <externalProvider>${ $.ns }.klevu_integration_removal_data_source</externalProvider>
+                    <ns>klevu_integration_removal</ns>
+                </settings>
+            </insertForm>
+        </container>
+    </modal>
+</listing>

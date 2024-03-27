@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+
+    <group id="integration_status"
+           translate="label"
+           sortOrder="10"
+           showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+        <label>Integration Status</label>
+        <attribute type="expanded">1</attribute>
+        <fieldset_css>klevu-integration</fieldset_css>
+        <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+
+        <field id="klevu_kmc_instructions" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <!--
+            frontend_model is a virtualType based on \Klevu\Configuration\Block\Adminhtml\Config\Html
+            see etc/adminhtml/di.xml for config
+            -->
+            <frontend_model>Klevu\Configuration\Block\Adminhtml\Config\Integration\Kmc</frontend_model>
+        </field>
+
+        <field id="klevu_store_list" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <!--
+            frontend_model is a virtualType based on \Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset
+            see etc/adminhtml/di.xml for config
+            -->
+            <frontend_model>Klevu\Configuration\Block\Adminhtml\Config\Integration\StoreList</frontend_model>
+        </field>
+    </group>
+</config>

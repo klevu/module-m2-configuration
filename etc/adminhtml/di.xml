@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Information\ModuleVersions"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset">
+        <arguments>
+            <argument name="blockName" xsi:type="string">klevu_module_versions</argument>
+            <argument name="template"
+                      xsi:type="string">Klevu_Configuration::system/config/information/module_versions.phtml</argument>
+            <argument name="viewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Information\ModuleVersions</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Information\KnowledgeBase"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\ArticleList">
+        <arguments>
+            <argument name="blockName" xsi:type="string">klevu_knowledge_base</argument>
+            <argument name="viewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Information\KnowledgeBase</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Integration\StoreList"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset">
+        <arguments>
+            <argument name="blockName" xsi:type="string">klevu_integration_store_list</argument>
+            <argument name="viewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Integration\StoreList</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Integration\Removal\Header"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Messages">
+        <arguments>
+            <argument name="messageViewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Integration\Removal\Messages</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Integration\Kmc"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset">
+        <arguments>
+            <argument name="blockName" xsi:type="string">klevu_integration_kmc</argument>
+            <argument name="template"
+                      xsi:type="string">Klevu_Configuration::system/config/integration/kmc.phtml</argument>
+            <argument name="viewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Integration\Kmc\Links</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Klevu\Configuration\Service\GetBearerTokenService">
+        <arguments>
+            <argument name="userContext"
+                      xsi:type="object">Magento\User\Model\Authorization\AdminSessionUserContext</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\View\Element\AbstractBlock">
+        <plugin name="Klevu_Configuration::RemoveStoresConfigSaveButton"
+                type="Klevu\Configuration\Plugin\Stores\Config\RemoveSaveButton" />
+    </type>
+
+    <type name="Magento\Config\Block\System\Config\Form\Field">
+        <plugin name="Klevu_Configuration::Stores_Config_Information_RemoveInheritCheckbox"
+                type="Klevu\Configuration\Plugin\Stores\Config\Information\RemoveInheritCheckboxPlugin" />
+    </type>
+
+    <virtualType name="Klevu\Configuration\ViewModel\Config\Information\KnowledgeBase"
+                 type="Klevu\Configuration\ViewModel\Config\Information\ArticleList">
+        <arguments>
+            <argument name="articles" xsi:type="array">
+                <item name="integration" xsi:type="array">
+                    <item name="how-to-integrate" xsi:type="array">
+                        <item name="link" xsi:type="string"><![CDATA[https://help.klevu.com/support/solutions/articles/5000871252-integration-steps-for-magento-2]]></item>
+                        <item name="order" xsi:type="number">10</item>
+                        <item name="title" xsi:type="string">How to Integrate Klevu With Magento 2</item>
+                    </item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
+</config>

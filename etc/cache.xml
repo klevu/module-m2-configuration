@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="klevu_integration"
+          translate="label description"
+          instance="Klevu\Configuration\Cache\Type\Integration">
+        <label>Klevu Integration</label>
+        <description>Features Available in KMC. Refresh if you have changed setting in KMC.</description>
+    </type>
+</config>

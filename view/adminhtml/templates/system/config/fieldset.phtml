@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset;
+
+/**
+ * @var KlevuFieldset $block
+ */
+$viewModel = $block->getViewModel();
+$escaper = $block->getEscaper();
+?>
+
+<?php foreach ($viewModel->getMessages() as $type => $messages): ?>
+    <?php foreach ($messages as $message): ?>
+        <div class="message message-<?= $escaper->escapeHtmlAttr($type) ?>">
+            <?= $escaper->escapeHtml($message->render()) ?>
+        </div>
+    <?php endforeach; ?>
+<?php endforeach; ?>
+
+<?php foreach ($viewModel->getChildBlocks() as $childBlock): ?>
+    <?= $block->getChildHtml($childBlock) ?>
+<?php endforeach; ?>
+
+<style>
+    <?= $escaper->escapeHtml($viewModel->getStyles()) ?>
+</style>

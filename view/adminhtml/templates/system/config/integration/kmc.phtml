@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset;
+use Klevu\Configuration\ViewModel\Config\Integration\Kmc\Links;
+
+/**
+ * @var KlevuFieldset $block
+ * @var Links $viewModel
+ */
+$viewModel = $block->getViewModel();
+$escaper = $block->getEscaper();
+?>
+
+<div>
+    <strong><?= $block->escapeHtml(__('How to Integrate Klevu?')->render()) ?></strong>
+    <p>
+        <?= $escaper->escapeHtml(__('Add a new store in your Klevu Merchant Center (KMC) account.')->render()) ?>
+        <a href="<?= $escaper->escapeUrl($viewModel->getIntegrationStepsArticleLink()) ?>" target="_blank">
+            <?= $escaper->escapeHtml(__('Learn More.')->render()) ?>
+        </a>
+        <?= '(' ?>
+        <span>
+            <?= $escaper->escapeHtml(__('Don\'t have an account?')->render()) ?>
+        </span>
+        <a href="<?= $escaper->escapeUrl($viewModel->getKlevuMerchantCenterUrl()) ?>" target="_blank">
+            <?= $escaper->escapeHtml(__('Click Here.')->render()) ?>
+        </a>
+        <?= ')' ?>
+    </p>
+</div>

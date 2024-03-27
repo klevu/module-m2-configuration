@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="klevu" translate="label" sortOrder="450">
+            <label>Klevu</label>
+        </tab>
+        <section id="klevu_integration"
+                 translate="label"
+                 sortOrder="10"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <class>separator-top</class>
+            <label>Integration</label>
+            <tab>klevu</tab>
+            <resource>Klevu_Configuration::integration</resource>
+            <include path="Klevu_Configuration::system/integration.xml"/>
+        </section>
+        <section id="klevu_data_sync"
+                 translate="label"
+                 sortOrder="30"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <label>Data Sync</label>
+            <tab>klevu</tab>
+            <resource>Klevu_Configuration::data_sync</resource>
+        </section>
+        <section id="klevu_developer"
+                 translate="label"
+                 sortOrder="40"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <label>Developer Settings</label>
+            <tab>klevu</tab>
+            <resource>Klevu_Configuration::developer</resource>
+            <include path="Klevu_Configuration::system/developer.xml"/>
+        </section>
+        <section id="klevu_information"
+                 translate="label"
+                 sortOrder="50"
+                 showInDefault="1"
+                 showInWebsite="1"
+                 showInStore="1">
+            <label>Information</label>
+            <tab>klevu</tab>
+            <resource>Klevu_Configuration::configuration</resource>
+            <include path="Klevu_Configuration::system/information.xml"/>
+        </section>
+    </system>
+</config>

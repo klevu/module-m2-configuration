@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Configuration\Block\Adminhtml\Config\ArticleList;
+use Klevu\Configuration\ViewModel\Config\ArticleListInterface;
+
+/**
+ * @var ArticleList $block
+ */
+$viewModel = $block->getViewModel();
+$escaper = $block->getEscaper();
+?>
+
+<?php if ($viewModel->hasLinks()): ?>
+    <?php foreach ($viewModel->getLinks() as $section => $articles): ?>
+        <?php if ($articles): ?>
+            <div class="klevu-ul-list-title">
+                <strong>
+                    <?= $escaper->escapeHtml(ucwords(str_replace('-', ' ', $section))) ?>
+                </strong>
+            </div>
+            <ul class="klevu-ul-list">
+                <?php foreach ($articles as $article): ?>
+                    <?php if ($article[ArticleListInterface::ARTICLE_LIST_LINK] ?? null): ?>
+                        <li>
+                            <a href="<?= $escaper->escapeUrl($article[ArticleListInterface::ARTICLE_LIST_LINK]) ?>"
+                               target="_blank">
+                                <?= $escaper->escapeHtml(
+                                    (isset($article[ArticleListInterface::ARTICLE_LIST_TITLE]))
+                                        ? __($article[ArticleListInterface::ARTICLE_LIST_TITLE])
+                                        : $article[ArticleListInterface::ARTICLE_LIST_LINK],
+                                ) ?>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+    <?php endforeach; ?>
+
+    <style>
+        <?= $escaper->escapeHtml($viewModel->getStyles()) ?>
+    </style>
+<?php endif; ?>

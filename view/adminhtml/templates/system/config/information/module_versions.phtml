@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset;
+use Klevu\Configuration\ViewModel\Config\Information\ModuleVersionsInterface;
+
+/**
+ * @var KlevuFieldset $block
+ * @var ModuleVersionsInterface $viewModel
+ */
+$viewModel = $block->getViewModel();
+$escaper = $block->getEscaper();
+?>
+
+<?php foreach ($viewModel->getMessages() as $type => $messages): ?>
+    <?php foreach ($messages as $message): ?>
+        <div class="message message message-<?= $escaper->escapeHtmlAttr($type) ?>">
+            <?= $escaper->escapeHtml($message->render()) ?>
+        </div>
+    <?php endforeach; ?>
+<?php endforeach; ?>
+
+<?php if ($viewModel->hasVersions()): ?>
+    <table class="klevu-module-versions">
+        <thead>
+        <tr>
+            <th scope="col"><?= $escaper->escapeHtml(__('Module')->render()) ?></th>
+            <th scope="col"><?= $escaper->escapeHtml(__('Version')->render()) ?></th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($viewModel->getVersions() as $module => $version): ?>
+            <tr>
+                <td>
+                    <span><?= $escaper->escapeHtml($module) ?></span>
+                </td>
+                <td>
+                    <span><?= $escaper->escapeHtml($version) ?></span>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+        <tr>
+            <th scope="row" colspan="2">
+                <?= $escaper->escapeHtml(
+                    __('All enabled Klevu modules and the currently installed version.')->render(),
+                ) ?>
+            </th>
+        </tr>
+        </tfoot>
+    </table>
+    <style>
+        table.klevu-module-versions {
+            table-layout: fixed;
+            width: 100%;
+            border-collapse: collapse;
+            border: solid 1px #f5f5f5;
+            background-color: #fff;
+        }
+
+        .klevu-module-versions thead th:nth-child(1) {
+            width: 65%;
+        }
+
+        .klevu-module-versions thead th:nth-child(2) {
+            width: 35%;
+        }
+
+        .klevu-module-versions thead tr,
+        .klevu-module-versions tfoot tr {
+            border: solid 1px #f5f5f5;
+        }
+
+        .klevu-module-versions thead th {
+            background-color: #000;
+            color: #fff;
+            text-align: left;
+            border: 0.1rem solid #666666;
+        }
+
+        .klevu-module-versions tfoot th,
+        .klevu-module-versions tr:nth-child(2n) {
+            background-color: #fff;
+        }
+
+        .klevu-module-versions tr:nth-child(2n-1) {
+            background-color: #f5f5f5;
+        }
+
+        .klevu-module-versions tbody tr:hover {
+            background-color: #e5f7fe;
+        }
+
+        .klevu-module-versions tbody td {
+            text-align: left;
+            border-left: 0.1rem dashed #d6d6d6;
+            border-right: 0.1rem dashed #d6d6d6;
+        }
+
+        .accordion .form-inline .config .klevu-module-versions th,
+        .accordion .form-inline .config .klevu-module-versions td {
+            padding: 1.5rem;
+        }
+    </style>
+<?php endif; ?>
