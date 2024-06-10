@@ -10,9 +10,23 @@ namespace Klevu\Configuration\ViewModel\Config\Integration;
 
 use Klevu\Configuration\ViewModel\Config\FieldsetInterface;
 use Magento\Framework\Phrase;
+use Magento\Store\Model\StoreManagerInterface;
 
 class StoreList implements FieldsetInterface
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    private readonly StoreManagerInterface $storeManager;
+
+    /**
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(StoreManagerInterface $storeManager)
+    {
+        $this->storeManager = $storeManager;
+    }
+
     /**
      * {@inherit-doc}
      *
@@ -20,13 +34,16 @@ class StoreList implements FieldsetInterface
      */
     public function getMessages(): array
     {
-        return [
-            'info' => [
+        $return = [];
+        if (!$this->storeManager->isSingleStoreMode()) {
+            $return['info'] = [
                 __(
                     'Note: An integration at Store Scope will override an integration at Website Scope.',
                 ),
-            ],
-        ];
+            ];
+        }
+
+        return $return;
     }
 
     /**

@@ -9,12 +9,13 @@ declare(strict_types=1);
 namespace Klevu\Configuration\Service\Provider\Stores\Config;
 
 use Klevu\Configuration\Validator\ValidatorInterface;
-use Magento\Config\Block\System\Config\Form as ConfigForm;
 use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigCollectionFactory;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DB\Select;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
@@ -133,10 +134,11 @@ class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
      */
     private function filterByScopeType(): void
     {
-        if ($this->isSingleStoreMode) {
-            return;
-        }
-        $this->configCollection->addFieldToFilter('scope', ['in' => $this->validScopes]);
+        $scope = $this->isSingleStoreMode
+            ? [ScopeConfigInterface::SCOPE_TYPE_DEFAULT]
+            : $this->validScopes;
+
+        $this->configCollection->addFieldToFilter('scope', ['in' => $scope]);
     }
 
     /**
@@ -148,8 +150,8 @@ class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
     private function filterByScope(array $filter): void
     {
         if ($this->isSingleStoreMode) {
-            $filter[static::FILTER_SCOPE] = ConfigForm::SCOPE_DEFAULT;
-            $filter[static::FILTER_SCOPE_ID] = 0;
+            $filter[static::FILTER_SCOPE] = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+            $filter[static::FILTER_SCOPE_ID] = Store::DEFAULT_STORE_ID;
         }
         $this->validateFilter($filter);
         $this->configCollection->addFieldToFilter('scope', ['eq' => $filter[static::FILTER_SCOPE]]);

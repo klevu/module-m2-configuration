@@ -8,11 +8,9 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\Service;
 
-use Klevu\Configuration\Exception\AccountCacheScopeException;
 use Klevu\Configuration\Exception\Integration\InactiveAccountException;
 use Klevu\Configuration\Exception\Integration\InvalidPlatformException;
 use Klevu\Configuration\Exception\Integration\InvalidScopeException;
-use Klevu\Configuration\Service\Action\CacheAccountActionInterface;
 use Klevu\Configuration\Service\Action\Sdk\AccountDetailsActionInterface;
 use Klevu\Configuration\Service\Action\UpdateEndpointsInterface;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
@@ -24,11 +22,14 @@ use Klevu\PhpSDK\Exception\Api\BadRequestException;
 use Klevu\PhpSDK\Exception\Api\BadResponseException;
 use Klevu\PhpSDK\Exception\ValidationException;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface as ScopeConfigWriter;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 
 class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
 {
@@ -36,10 +37,6 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      * @var AccountDetailsActionInterface
      */
     private readonly AccountDetailsActionInterface $accountDetailsAction;
-    /**
-     * @var CacheAccountActionInterface
-     */
-    private readonly CacheAccountActionInterface $cacheAccountAction;
     /**
      * @var ScopeConfigWriter
      */
@@ -53,39 +50,43 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      */
     private readonly ReinitableConfigInterface $reinitableConfig;
     /**
+     * @var ValidatorInterface
+     */
+    private readonly ValidatorInterface $scopeValidator;
+    /**
      * @var EventManagerInterface
      */
     private readonly EventManagerInterface $eventManager;
     /**
-     * @var ValidatorInterface
+     * @var StoreManagerInterface
      */
-    private readonly ValidatorInterface $scopeValidator;
+    private readonly StoreManagerInterface $storeManager;
 
     /**
      * @param AccountDetailsActionInterface $accountDetailsAction
-     * @param CacheAccountActionInterface $cacheAccountAction
      * @param ScopeConfigWriter $scopeConfigWriter
      * @param UpdateEndpointsInterface $updateEndPoints
      * @param ReinitableConfigInterface $reinitableConfig
-     * @param EventManagerInterface $eventManager
      * @param ValidatorInterface $scopeValidator
+     * @param EventManagerInterface $eventManager
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         AccountDetailsActionInterface $accountDetailsAction,
-        CacheAccountActionInterface $cacheAccountAction,
         ScopeConfigWriter $scopeConfigWriter,
         UpdateEndpointsInterface $updateEndPoints,
         ReinitableConfigInterface $reinitableConfig,
-        EventManagerInterface $eventManager,
         ValidatorInterface $scopeValidator,
+        EventManagerInterface $eventManager,
+        StoreManagerInterface $storeManager,
     ) {
         $this->accountDetailsAction = $accountDetailsAction;
-        $this->cacheAccountAction = $cacheAccountAction;
         $this->scopeConfigWriter = $scopeConfigWriter;
         $this->updateEndPoints = $updateEndPoints;
         $this->reinitableConfig = $reinitableConfig;
-        $this->eventManager = $eventManager;
         $this->scopeValidator = $scopeValidator;
+        $this->eventManager = $eventManager;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -95,7 +96,6 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      * @param string $scopeType
      *
      * @return AccountInterface
-     * @throws AccountCacheScopeException
      * @throws AccountNotFoundException
      * @throws BadRequestException
      * @throws BadResponseException
@@ -126,11 +126,6 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
             scope: $scopeId,
             scopeType: $scopeType,
         );
-        $this->cacheAccountAction->execute(
-            accountFeatures: $account->getAccountFeatures(),
-            scopeId: $scopeId,
-            scopeType: $scopeType,
-        );
         $this->eventManager->dispatch(
             'klevu_integrate_api_keys_after',
             [
@@ -153,6 +148,10 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
         int $scopeId,
         string $scopeType,
     ): void {
+        if ($this->storeManager->isSingleStoreMode()) {
+            $scopeType = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+            $scopeId = Store::DEFAULT_STORE_ID;
+        }
         $this->scopeConfigWriter->save(
             path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
             value: $account->getJsApiKey(),
@@ -176,6 +175,9 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      */
     private function validateScope(string $scopeType): void
     {
+        if ($this->storeManager->isSingleStoreMode()) {
+            return;
+        }
         if ($this->scopeValidator->isValid($scopeType)) {
             return;
         }

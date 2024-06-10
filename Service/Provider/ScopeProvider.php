@@ -10,6 +10,7 @@ namespace Klevu\Configuration\Service\Provider;
 
 use Klevu\Configuration\Model\CurrentScopeFactory;
 use Klevu\Configuration\Model\CurrentScopeInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
@@ -32,9 +33,9 @@ class ScopeProvider implements ScopeProviderInterface
      */
     private readonly CurrentScopeFactory $currentScopeFactory;
     /**
-     * @var bool
+     * @var StoreManagerInterface
      */
-    private readonly bool $isSingleStoreMode;
+    private readonly StoreManagerInterface $storeManager;
     /**
      * @var StoreInterface|WebsiteInterface|null
      */
@@ -55,7 +56,7 @@ class ScopeProvider implements ScopeProviderInterface
         $this->storeScopeProvider = $storeScopeProvider;
         $this->websiteScopeProvider = $websiteScopeProvider;
         $this->currentScopeFactory = $currentScopeFactory;
-        $this->isSingleStoreMode = $storeManager->isSingleStoreMode();
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -86,9 +87,6 @@ class ScopeProvider implements ScopeProviderInterface
     public function setCurrentScope(WebsiteInterface|StoreInterface $scope): void
     {
         $this->unsetCurrentScope();
-        if ($this->isSingleStoreMode) {
-            return;
-        }
         $this->currentScope = $scope;
         if ($scope instanceof WebsiteInterface) {
             $this->websiteScopeProvider->setCurrentWebsite($scope);
@@ -107,10 +105,10 @@ class ScopeProvider implements ScopeProviderInterface
      */
     public function setCurrentScopeByCode(string $scopeCode, string $scopeType): void
     {
-        $this->unsetCurrentScope();
-        if ($this->isSingleStoreMode) {
-            return;
+        if ($scopeType === ScopeConfigInterface::SCOPE_TYPE_DEFAULT && $this->storeManager->isSingleStoreMode()) {
+            $scopeType = ScopeInterface::SCOPE_STORES;
         }
+        $this->unsetCurrentScope();
         switch ($scopeType) {
             case ScopeInterface::SCOPE_WEBSITE:
             case ScopeInterface::SCOPE_WEBSITES:
@@ -145,10 +143,10 @@ class ScopeProvider implements ScopeProviderInterface
      */
     public function setCurrentScopeById(int $scopeId, string $scopeType): void
     {
-        $this->unsetCurrentScope();
-        if ($this->isSingleStoreMode) {
-            return;
+        if ($scopeType === ScopeConfigInterface::SCOPE_TYPE_DEFAULT && $this->storeManager->isSingleStoreMode()) {
+            $scopeType = ScopeInterface::SCOPE_STORES;
         }
+        $this->unsetCurrentScope();
         switch ($scopeType) {
             case ScopeInterface::SCOPE_WEBSITE:
             case ScopeInterface::SCOPE_WEBSITES:

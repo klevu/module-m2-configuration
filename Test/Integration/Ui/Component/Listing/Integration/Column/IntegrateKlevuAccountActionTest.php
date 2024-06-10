@@ -6,10 +6,10 @@
 
 declare(strict_types=1);
 
-namespace Klevu\Configuration\Test\Integration\Ui\Component\Listing\Column;
+namespace Klevu\Configuration\Test\Integration\Ui\Component\Listing\Integration\Column;
 
 use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
-use Klevu\Configuration\Ui\Component\Listing\Column\IntegrateKlevuAccount;
+use Klevu\Configuration\Ui\Component\Listing\Integration\Column\IntegrateKlevuAccountAction;
 use Klevu\Configuration\Ui\DataProvider\Integration\Listing\StoresDataProvider;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
@@ -18,16 +18,17 @@ use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Phrase;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
- * @covers IntegrateKlevuAccount
- * @method IntegrateKlevuAccount instantiateTestObject(?array $arguments = null)
- * @method IntegrateKlevuAccount instantiateTestObjectFromInterface(?array $arguments = null)
- *
+ * @covers IntegrateKlevuAccountAction
+ * @method IntegrateKlevuAccountAction instantiateTestObject(?array $arguments = null)
+ * @method IntegrateKlevuAccountAction instantiateTestObjectFromInterface(?array $arguments = null)
  */
-class IntegrateKlevuAccountTest extends TestCase
+class IntegrateKlevuAccountActionTest extends TestCase
 {
     use ObjectInstantiationTrait;
     use SetAuthKeysTrait;
@@ -38,11 +39,14 @@ class IntegrateKlevuAccountTest extends TestCase
      */
     private ?ObjectManagerInterface $objectManager = null;
 
+    /**
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->implementationFqcn = IntegrateKlevuAccount::class;
+        $this->implementationFqcn = IntegrateKlevuAccountAction::class;
         $this->objectManager = Bootstrap::getObjectManager();
         $this->storeFixturesPool = $this->objectManager->get(StoreFixturesPool::class);
     }
@@ -126,6 +130,63 @@ class IntegrateKlevuAccountTest extends TestCase
         $this->assertArrayHasKey(key: 'label', array: $links['remove_store']);
         $this->assertInstanceOf(expected: Phrase::class, actual: $links['remove_store']['label']);
         $this->assertSame(expected: 'Remove Store Keys', actual: $links['remove_store']['label']->render());
+
+        $this->assertArrayNotHasKey(key: 'integrate_website', array: $links);//@TODO change when channels are available
+        $this->assertArrayNotHasKey(key: 'remove_website', array: $links);
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
+     */
+    public function testPrepareDataSource_ForStoreIntegration_WhenSingleStoreModeEnabled(): void
+    {
+        $jsApiKey = 'klevu-js-key';
+
+        $storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $store = $storeManager->getDefaultStoreView();
+
+        $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
+        $scopeProvider->setCurrentScope($store);
+
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider,
+            jsApiKey: $jsApiKey,
+            restAuthKey: 'klevu-rest-key',
+            singleStoreMode: true,
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+
+        $result = $this->getColumnData();
+        $this->assertArrayHasKey(key: 'data', array: $result);
+        $this->assertArrayHasKey(key: 'items', array: $result['data']);
+        $items = $result['data']['items'];
+        $this->assertCount(expectedCount: 1, haystack: $items);
+        $item = array_shift($items);
+
+        $this->assertArrayHasKey(key: 'integration_message', array: $item);
+        $this->assertInstanceOf(expected: Phrase::class, actual: $item['integration_message']);
+        $this->assertSame(
+            expected: sprintf('Integrated (%s)', $jsApiKey),
+            actual: $item['integration_message']->render(),
+        );
+
+        $this->assertArrayHasKey(key: 'klevu_integration_store_listing', array: $item);
+        $links = $item['klevu_integration_store_listing'];
+
+        $this->assertArrayHasKey(key: 'integrate_store', array: $links);
+        $this->assertArrayHasKey(key: 'label', array: $links['integrate_store']);
+        $this->assertInstanceOf(expected: Phrase::class, actual: $links['integrate_store']['label']);
+        $this->assertSame(expected: 'Edit Keys', actual: $links['integrate_store']['label']->render());
+
+        $this->assertArrayHasKey(key: 'remove_store', array: $links);
+        $this->assertArrayHasKey(key: 'label', array: $links['remove_store']);
+        $this->assertInstanceOf(expected: Phrase::class, actual: $links['remove_store']['label']);
+        $this->assertSame(expected: 'Remove Keys', actual: $links['remove_store']['label']->render());
 
         $this->assertArrayNotHasKey(key: 'integrate_website', array: $links);//@TODO change when channels are available
         $this->assertArrayNotHasKey(key: 'remove_website', array: $links);

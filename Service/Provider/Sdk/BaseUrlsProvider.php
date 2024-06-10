@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace Klevu\Configuration\Service\Provider\Sdk;
 
 use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
+use Klevu\PhpSDK\Api\Model\AccountInterface;
+use Klevu\PhpSDK\Provider\BaseUrlsProviderFactory;
 use Klevu\PhpSDK\Provider\BaseUrlsProviderInterface;
 use Klevu\PhpSDK\Provider\Indexing\IndexingVersions;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -38,16 +40,18 @@ class BaseUrlsProvider implements BaseUrlsProviderInterface
     private readonly ScopeConfigInterface $scopeConfig;
 
     /**
-     * @param BaseUrlsProviderInterface $fallbackBaseUrlsProvider
+     * @param BaseUrlsProviderFactory $fallbackBaseUrlsProviderFactory
      * @param ScopeProviderInterface $scopeProvider
      * @param ScopeConfigInterface $scopeConfig
+     * @param AccountInterface|null $account
      */
     public function __construct(
-        BaseUrlsProviderInterface $fallbackBaseUrlsProvider,
+        BaseUrlsProviderFactory $fallbackBaseUrlsProviderFactory,
         ScopeProviderInterface $scopeProvider,
         ScopeConfigInterface $scopeConfig,
+        ?AccountInterface $account = null,
     ) {
-        $this->fallbackBaseUrlsProvider = $fallbackBaseUrlsProvider;
+        $this->fallbackBaseUrlsProvider = $fallbackBaseUrlsProviderFactory->create(['account' => $account]);
         $this->scopeProvider = $scopeProvider;
         $this->scopeConfig = $scopeConfig;
     }

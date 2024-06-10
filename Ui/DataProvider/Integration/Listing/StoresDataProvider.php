@@ -11,6 +11,7 @@ namespace Klevu\Configuration\Ui\DataProvider\Integration\Listing;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
 use Klevu\Configuration\Service\Provider\AuthKeyProvider;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value as ConfigValue;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
@@ -160,6 +161,9 @@ class StoresDataProvider extends AbstractDataProvider
      */
     private function getRequestParams(): array
     {
+        if ($this->storeManager->isSingleStoreMode()) {
+            return [Store::DEFAULT_STORE_ID, null];
+        }
         $requestParams = $this->request->getParams();
 
         return [
@@ -189,24 +193,64 @@ class StoresDataProvider extends AbstractDataProvider
     private function getApiKeyMessage(array $configItems, StoreInterface $store): Phrase
     {
         $storeScope = true;
-        $filteredConfig = $this->filterConfigByStoreScope(configItems: $configItems, store: $store);
-        if (!$filteredConfig) {
-            $filteredConfig = $this->filterConfigByWebsiteScope(configItems: $configItems, store: $store);
-            $storeScope = false;
+        if ($this->storeManager->isSingleStoreMode()) {
+            $filteredConfig = $this->filterConfigByGlobalScope(configItems: $configItems);
+        } else {
+            $filteredConfig = $this->filterConfigByStoreScope(configItems: $configItems, store: $store);
+            if (!$filteredConfig) {
+                $filteredConfig = $this->filterConfigByWebsiteScope(configItems: $configItems, store: $store);
+                $storeScope = false;
+            }
         }
         $keys = array_keys($filteredConfig);
         $key = $keys[0] ?? 0;
         $configItem = $filteredConfig[$key] ?? null;
 
         $jsApiKey = $configItem?->getValue();
-
-        if (!$jsApiKey) {
-            return __('Not Integrated');
+        $return = null;
+        if ($jsApiKey) {
+            $return = match (true) {
+                $this->storeManager->isSingleStoreMode() => __('Integrated (%1)', $jsApiKey),
+                $storeScope => __('Integrated at Store Scope (%1)', $jsApiKey),
+                default => __('Integrated at Website Scope (%1)', $jsApiKey),
+            };
         }
 
-        return $storeScope
-            ? __('Integrated at Store Scope (%1)', $jsApiKey)
-            : __('Integrated at Website Scope (%1)', $jsApiKey);
+        return $return ?: __('Not Integrated');
+    }
+
+    /**
+     * @param array<ConfigValue|DataObject> $configItems
+     *
+     * @return array<ConfigValue|DataObject>
+     */
+    private function filterConfigByGlobalScope(array $configItems): array
+    {
+        if (isset($this->cachedConfigItemFilter[ScopeConfigInterface::SCOPE_TYPE_DEFAULT])) {
+            return $this->cachedConfigItemFilter[ScopeConfigInterface::SCOPE_TYPE_DEFAULT];
+        }
+        $storeItems = array_filter(
+            array: $configItems,
+            callback: static function (ConfigValue|DataObject $configItem): bool {
+                return $configItem->getScope() === ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+                    && null !== $configItem->getValue()
+                    && ($configItem->getPath() === ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY
+                        || $configItem->getPath() === AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY);
+            },
+        );
+
+        // must have both keys
+        $items = (count($storeItems) >= 2)
+            ? array_filter(
+                array: $storeItems,
+                callback: static function (ConfigValue|DataObject $configItem) {
+                    return $configItem->getPath() === ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY;
+                },
+            )
+            : [];
+        $this->cachedConfigItemFilter[ScopeConfigInterface::SCOPE_TYPE_DEFAULT] = $items;
+
+        return $this->cachedConfigItemFilter[ScopeConfigInterface::SCOPE_TYPE_DEFAULT];
     }
 
     /**
@@ -338,10 +382,16 @@ class StoresDataProvider extends AbstractDataProvider
      */
     private function isStoreIntegrated(array $configItems, StoreInterface $store): bool
     {
-        $items = $this->filterConfigByStoreScope(
-            configItems: $configItems,
-            store: $store,
-        );
+        if ($this->storeManager->isSingleStoreMode()) {
+            $items = $this->filterConfigByGlobalScope(
+                configItems: $configItems,
+            );
+        } else {
+            $items = $this->filterConfigByStoreScope(
+                configItems: $configItems,
+                store: $store,
+            );
+        }
 
         return (bool)count($items);
     }

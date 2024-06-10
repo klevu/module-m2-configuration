@@ -14,9 +14,9 @@ use Klevu\Configuration\Service\IntegrateApiKeysService;
 use Klevu\Configuration\Service\IntegrateApiKeysServiceInterface;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
 use Klevu\Configuration\Service\Provider\AuthKeyProvider;
-use Klevu\Configuration\Service\Provider\CachedAccountProvider;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface;
+use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
 use Klevu\PhpSDK\Api\Service\Account\AccountLookupServiceInterface;
 use Klevu\PhpSDK\Exception\AccountNotFoundException;
 use Klevu\PhpSDK\Exception\Validation\InvalidDataValidationException;
@@ -236,7 +236,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => null,
             UpdateEndpoints::CONFIG_XML_PATH_URL_JS => null,
             UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => null,
-            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.klevu.com', // default setting
+            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => null, // default setting
         ];
         foreach (array_keys($paths) as $path) {
             $configWriter->delete(
@@ -281,7 +281,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             'jsUrl' => 'js.url',
             'searchUrl' => 'search.url',
             'smartCategoryMerchandisingUrl' => 'catnav.url',
-            'tiersUrl' => 'tiers.url',
+            'tiersUrl' => 'tiers.klevu.com',
         ];
         $mockAccount = $this->createAccount(accountData: $accountData);
         $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)
@@ -311,9 +311,16 @@ class IntegrateApiKeysServiceTest extends TestCase
         $mockAccountFeaturesService->expects($this->once())
             ->method('execute')
             ->willReturn($mockAccountFeatures);
+        $mockAccountFeaturesServiceFactory = $this->getMockBuilder(AccountFeaturesServiceInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountFeaturesServiceFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($mockAccountFeaturesService);
+
         $this->objectManager->addSharedInstance(
-            instance: $mockAccountFeaturesService,
-            className: AccountFeaturesServiceInterface::class,
+            instance: $mockAccountFeaturesServiceFactory,
+            className: AccountFeaturesServiceInterfaceFactory::class,
             forPreference: true,
         );
         $this->objectManager->addSharedInstance(
@@ -356,10 +363,166 @@ class IntegrateApiKeysServiceTest extends TestCase
         );
         $this->assertTrue(condition: $accountFeatures->preserveLayout, message: 'Preserve Layout');
 
+        $initialConfigValues = [
+            ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => $jsApiKey,
+            AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY => $restAuthKey,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_ANALYTICS => 'analytics.url',
+            UpdateEndpoints::CONFIG_XML_PATH_URL_CAT_NAV => 'catnav.url',
+            UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => 'indexing.url',
+            UpdateEndpoints::CONFIG_XML_PATH_URL_JS => 'js.url',
+            UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => 'search.url',
+            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.klevu.com',
+        ];
+        foreach ($initialConfigValues as $path => $value) {
+            $actualValue = $scopeConfig->getValue(
+                $path,
+                ScopeInterface::SCOPE_STORES,
+                $store->getId(),
+            );
+            $this->assertSame(expected: $value, actual: $actualValue);
+        }
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
+     */
+    public function testExecute_SavesAccountData_ForWebsite(): void
+    {
+        // @TODO add when channels are available
+        $this->markTestSkipped('Skipped until channels are available');
+        /** @var ConfigWriter $configWriter */
+        $configWriter = $this->objectManager->get(ConfigWriter::class);
+
+        $this->createStore();
+        $store = $this->storeFixturesPool->get(key: 'test_store');
+
+        $scopeConfig = $this->objectManager->get(ScopeConfigInterface::class);
+        $paths = [
+            ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => null,
+            AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_ANALYTICS => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_CAT_NAV => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_JS => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => null,
+            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.klevu.com', // default setting
+        ];
+        foreach (array_keys($paths) as $path) {
+            $configWriter->delete(
+                path: $path,
+                scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                scopeId: 0,
+            );
+            $configWriter->delete(
+                path: $path,
+                scope: ScopeInterface::SCOPE_WEBSITES,
+                scopeId: $store->getWebsiteId(),
+            );
+            $configWriter->delete(
+                path: $path,
+                scope: ScopeInterface::SCOPE_STORES,
+                scopeId: $store->getId(),
+            );
+        }
+        foreach ($paths as $path => $value) {
+            $configJsApiKey = $scopeConfig->getValue(
+                $path,
+                ScopeInterface::SCOPE_WEBSITES,
+                $store->getWebsiteId(),
+            );
+            $this->assertSame(expected: $value, actual: $configJsApiKey);
+        }
+
+        $jsApiKey = 'klevu-0987654321';
+        $restAuthKey = $this->generateAuthKey(length: 10);
+        $accountData = [
+            'jsApiKey' => $jsApiKey,
+            'restAuthKey' => $restAuthKey,
+            'platform' => 'magento',
+            'active' => true,
+            'companyName' => 'Klevu Io',
+            'email' => 'someone@klevu.com',
+            'analyticsUrl' => 'analytics.url',
+            'indexingUrl' => 'indexing.url',
+            'jsUrl' => 'js.url',
+            'searchUrl' => 'search.url',
+            'smartCategoryMerchandisingUrl' => 'catnav.url',
+            'tiersUrl' => 'tiers.url',
+        ];
+        $mockAccount = $this->createAccount(accountData: $accountData);
+        $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)
+            ->getMock();
+        $mockAccountLookup->expects($this->once())
+            ->method('execute')
+            ->willReturn($mockAccount);
+        $this->objectManager->addSharedInstance(
+            instance: $mockAccountLookup,
+            className: AccountLookupServiceInterface::class,
+            forPreference: true,
+        );
+
+        $accountFeatures = [
+            'smartCategoryMerchandising' => false,
+            'smartRecommendations' => true,
+            'preserveLayout' => true,
+        ];
+        $mockAccountFeatures = $this->createAccountFeatures(accountFeatures: $accountFeatures);
+        $mockAccountFeaturesService = $this->getMockBuilder(AccountFeaturesServiceInterface::class)
+            ->getMock();
+        $mockAccountFeaturesService->expects($this->once())
+            ->method('execute')
+            ->willReturn($mockAccountFeatures);
+        $this->objectManager->addSharedInstance(
+            instance: $mockAccountFeaturesService,
+            className: AccountFeaturesServiceInterface::class,
+            forPreference: true,
+        );
+        $this->objectManager->addSharedInstance(
+            instance: $mockAccountFeaturesService,
+            className: 'Klevu\Configuration\Service\Account\AccountFeaturesService', // virtualType
+            forPreference: true,
+        );
+
+        $mockEventManager = $this->getMockBuilder(ManagerInterface::class)
+            ->getMock();
+        $mockEventManager->expects($this->once())
+            ->method('dispatch')
+            ->with(
+                'klevu_integrate_api_keys_after',
+                [
+                    'apiKey' => $jsApiKey,
+                ],
+            );
+
+        $service = $this->instantiateIntegrateApiKeysService([
+            'eventManager' => $mockEventManager,
+        ]);
+        $account = $service->execute(
+            apiKey: $jsApiKey,
+            authKey: $restAuthKey,
+            scopeId: $store->getWebsiteId(),
+            scopeType: ScopeInterface::SCOPE_WEBSITES,
+        );
+        // returned data
+        $this->assertSame(expected: $jsApiKey, actual: $account->getJsApiKey());
+        $this->assertSame(expected: $restAuthKey, actual: $account->getRestAuthKey());
+        $this->assertSame(expected: 'someone@klevu.com', actual: $account->getEmail());
+        $this->assertSame(
+            expected: 'catnav.url',
+            actual: $account->getSmartCategoryMerchandisingUrl(),
+        );
+        $accountFeatures = $account->getAccountFeatures();
+        $this->assertFalse(
+            condition: $accountFeatures->smartCategoryMerchandising,
+            message: 'Smart Category Merchandising',
+        );
+        $this->assertTrue(condition: $accountFeatures->preserveLayout, message: 'Preserve Layout');
+
         $accountProvider = $this->objectManager->get(CachedAccountProvider::class);
         $cachedAccountFeatures = $accountProvider->get(scopeId: $store->getId());
         // cached data
-        $this->assertTrue(
+        $this->assertFalse(
             condition: $cachedAccountFeatures->smartCategoryMerchandising,
             message: 'Smart Category Merchandising',
         );
@@ -383,172 +546,13 @@ class IntegrateApiKeysServiceTest extends TestCase
             UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.url',
         ];
         foreach ($initialConfigValues as $path => $value) {
-            $actualValue = $scopeConfig->getValue(
+            $configValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_STORES,
                 $store->getId(),
             );
-            $this->assertSame(expected: $value, actual: $actualValue);
+            $this->assertSame(expected: $value, actual: $configValue);
         }
-    }
-
-    /**
-     * @magentoAppIsolation enabled
-     * @magentoDbIsolation enabled
-     */
-    public function testExecute_SavesAccountData_ForWebsite(): void
-    {
-        // @TODO add when channels are available
-        $this->markTestSkipped('Skipped until channels are available');
-//        /** @var ConfigWriter $configWriter */
-//        $configWriter = $this->objectManager->get(ConfigWriter::class);
-//
-//        $this->createStore();
-//        $store = $this->storeFixturesPool->get(key: 'test_store');
-//
-//        $scopeConfig = $this->objectManager->get(ScopeConfigInterface::class);
-//        $paths = [
-//            ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => null,
-//            AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_ANALYTICS => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_CAT_NAV => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_JS => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => null,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.klevu.com', // default setting
-//        ];
-//        foreach (array_keys($paths) as $path) {
-//            $configWriter->delete(
-//                path: $path,
-//                scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-//                scopeId: 0,
-//            );
-//            $configWriter->delete(
-//                path: $path,
-//                scope: ScopeInterface::SCOPE_WEBSITES,
-//                scopeId: $store->getWebsiteId(),
-//            );
-//            $configWriter->delete(
-//                path: $path,
-//                scope: ScopeInterface::SCOPE_STORES,
-//                scopeId: $store->getId(),
-//            );
-//        }
-//        foreach ($paths as $path => $value) {
-//            $configJsApiKey = $scopeConfig->getValue(
-//                $path,
-//                ScopeInterface::SCOPE_WEBSITES,
-//                $store->getWebsiteId(),
-//            );
-//            $this->assertSame(expected: $value, actual: $configJsApiKey);
-//        }
-//
-//        $jsApiKey = 'klevu-0987654321';
-//        $restAuthKey = $this->generateAuthKey(length: 10);
-//        $accountData = [
-//            'jsApiKey' => $jsApiKey,
-//            'restAuthKey' => $restAuthKey,
-//            'platform' => 'magento',
-//            'active' => true,
-//            'companyName' => 'Klevu Io',
-//            'email' => 'someone@klevu.com',
-//            'analyticsUrl' => 'analytics.url',
-//            'indexingUrl' => 'indexing.url',
-//            'jsUrl' => 'js.url',
-//            'searchUrl' => 'search.url',
-//            'smartCategoryMerchandisingUrl' => 'catnav.url',
-//            'tiersUrl' => 'tiers.url',
-//        ];
-//        $mockAccount = $this->createAccount(accountData: $accountData);
-//        $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)
-//            ->getMock();
-//        $mockAccountLookup->expects($this->once())
-//            ->method('execute')
-//            ->willReturn($mockAccount);
-//        $this->objectManager->addSharedInstance(
-//            instance: $mockAccountLookup,
-//            className: AccountLookupServiceInterface::class,
-//            forPreference: true,
-//        );
-//
-//        $accountFeatures = [
-//            'smartCategoryMerchandising' => false,
-//            'smartRecommendations' => true,
-//            'preserveLayout' => true,
-//        ];
-//        $mockAccountFeatures = $this->createAccountFeatures(accountFeatures: $accountFeatures);
-//        $mockAccountFeaturesService = $this->getMockBuilder(AccountFeaturesServiceInterface::class)
-//            ->getMock();
-//        $mockAccountFeaturesService->expects($this->once())
-//            ->method('execute')
-//            ->willReturn($mockAccountFeatures);
-//        $this->objectManager->addSharedInstance(
-//            instance: $mockAccountFeaturesService,
-//            className: AccountFeaturesServiceInterface::class,
-//            forPreference: true,
-//        );
-//        $this->objectManager->addSharedInstance(
-//            instance: $mockAccountFeaturesService,
-//            className: 'Klevu\Configuration\Service\Account\AccountFeaturesService', // virtualType
-//            forPreference: true,
-//        );
-//
-//        $service = $this->instantiateIntegrateApiKeysService();
-//        $account = $service->execute(
-//            apiKey: $jsApiKey,
-//            authKey: $restAuthKey,
-//            scopeId: $store->getWebsiteId(),
-//            scopeType: ScopeInterface::SCOPE_WEBSITES,
-//        );
-//        // returned data
-//        $this->assertSame(expected: $jsApiKey, actual: $account->getJsApiKey());
-//        $this->assertSame(expected: $restAuthKey, actual: $account->getRestAuthKey());
-//        $this->assertSame(expected: 'someone@klevu.com', actual: $account->getEmail());
-//        $this->assertSame(
-//            expected: 'catnav.url',
-//            actual: $account->getSmartCategoryMerchandisingUrl(),
-//        );
-//        $accountFeatures = $account->getAccountFeatures();
-//        $this->assertFalse(
-//            condition: $accountFeatures->smartCategoryMerchandising,
-//            message: 'Smart Category Merchandising',
-//        );
-//        $this->assertTrue(condition: $accountFeatures->preserveLayout, message: 'Preserve Layout');
-//
-//        $accountProvider = $this->objectManager->get(CachedAccountProvider::class);
-//        $cachedAccountFeatures = $accountProvider->get(scopeId: $store->getId());
-//        // cached data
-//        $this->assertFalse(
-//            condition: $cachedAccountFeatures->smartCategoryMerchandising,
-//            message: 'Smart Category Merchandising',
-//        );
-//        $this->assertTrue(
-//            condition: $cachedAccountFeatures->preserveLayout,
-//            message: 'Preserve Layout',
-//        );
-//        $this->assertTrue(
-//            condition: $cachedAccountFeatures->smartRecommendations,
-//            message: 'Smart Recommendations',
-//        );
-//
-//        $initialConfigValues = [
-//            ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => $jsApiKey,
-//            AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY => $restAuthKey,
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_ANALYTICS => 'analytics.url',
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_CAT_NAV => 'catnav.url',
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => 'indexing.url',
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_JS => 'js.url',
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => 'search.url',
-//            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.url',
-//        ];
-//        foreach ($initialConfigValues as $path => $value) {
-//            $configValue = $scopeConfig->getValue(
-//                $path,
-//                ScopeInterface::SCOPE_STORES,
-//                $store->getId(),
-//            );
-//            $this->assertSame(expected: $value, actual: $configValue);
-//        }
     }
 
     /**

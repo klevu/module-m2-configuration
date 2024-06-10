@@ -35,13 +35,17 @@
         </dataProvider>
     </dataSource>
     <columns name="klevu_integration_store_listing_columns">
-        <column name="website" sortOrder="20">
+        <column name="website"
+                sortOrder="20"
+                class="Klevu\Configuration\Ui\Component\Listing\Integration\Column\Website">
             <settings>
                 <label translate="true">Website</label>
                 <sortable>false</sortable>
             </settings>
         </column>
-        <column name="store" sortOrder="30">
+        <column name="store"
+                sortOrder="30"
+                class="Klevu\Configuration\Ui\Component\Listing\Integration\Column\Store">
             <settings>
                 <label translate="true">Store</label>
                 <sortable>false</sortable>
@@ -54,7 +58,7 @@
             </settings>
         </column>
         <actionsColumn name="actions"
-                       class="Klevu\Configuration\Ui\Component\Listing\Column\IntegrateKlevuAccount"
+                       class="Klevu\Configuration\Ui\Component\Listing\Integration\Column\IntegrateKlevuAccountAction"
                        component="Klevu_Configuration/js/components/actions"
                        sortOrder="200">
             <settings>

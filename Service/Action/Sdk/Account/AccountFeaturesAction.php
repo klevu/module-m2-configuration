@@ -8,34 +8,44 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\Service\Action\Sdk\Account;
 
+use Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProviderFactory;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface;
+use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
 use Klevu\PhpSDK\Exception\Api\BadRequestException;
 use Klevu\PhpSDK\Exception\Api\BadResponseException;
 use Klevu\PhpSDK\Exception\ValidationException;
 use Klevu\PhpSDK\Model\Account\AccountFeatures;
+use Klevu\PhpSDK\Provider\BaseUrlsProviderInterface;
 
 class AccountFeaturesAction implements AccountFeaturesActionInterface
 {
     /**
-     * @var AccountFeaturesServiceInterface
+     * @var AccountFeaturesServiceInterfaceFactory
      */
-    private readonly AccountFeaturesServiceInterface $accountFeaturesService;
+    private readonly AccountFeaturesServiceInterfaceFactory $accountFeaturesServiceFactory;
     /**
      * @var CreateAccountCredentialsActionInterface
      */
     private readonly CreateAccountCredentialsActionInterface $createAccountCredentialsAction;
+    /**
+     * @var BaseUrlsProviderFactory
+     */
+    private readonly BaseUrlsProviderFactory $baseUrlProviderFactory;
 
     /**
-     * @param AccountFeaturesServiceInterface $accountFeaturesService
+     * @param AccountFeaturesServiceInterfaceFactory $accountFeaturesServiceFactory
      * @param CreateAccountCredentialsActionInterface $createAccountCredentialsAction
+     * @param BaseUrlsProviderFactory $baseUrlProviderFactory
      */
     public function __construct(
-        AccountFeaturesServiceInterface $accountFeaturesService,
+        AccountFeaturesServiceInterfaceFactory $accountFeaturesServiceFactory,
         CreateAccountCredentialsActionInterface $createAccountCredentialsAction,
+        BaseUrlsProviderFactory $baseUrlProviderFactory,
     ) {
-        $this->accountFeaturesService = $accountFeaturesService;
+        $this->accountFeaturesServiceFactory = $accountFeaturesServiceFactory;
         $this->createAccountCredentialsAction = $createAccountCredentialsAction;
+        $this->baseUrlProviderFactory = $baseUrlProviderFactory;
     }
 
     /**
@@ -52,7 +62,27 @@ class AccountFeaturesAction implements AccountFeaturesActionInterface
             apiKey: $account->getJsApiKey(),
             authKey: $account->getRestAuthKey(),
         );
+        $accountFeaturesService = $this->getFeaturesService($account);
 
-        return $this->accountFeaturesService->execute($accountCredentials);
+        return $accountFeaturesService->execute($accountCredentials);
+    }
+
+    /**
+     * @param AccountInterface $account
+     *
+     * @return AccountFeaturesServiceInterface
+     */
+    private function getFeaturesService(AccountInterface $account): AccountFeaturesServiceInterface
+    {
+        /** @var BaseUrlsProviderInterface $baseUrlProvider */
+        $baseUrlProvider = $this->baseUrlProviderFactory->create([
+            'account' => $account,
+        ]);
+        /** @var AccountFeaturesServiceInterface $accountFeaturesService */
+        $accountFeaturesService = $this->accountFeaturesServiceFactory->create([
+            'baseUrlsProvider' => $baseUrlProvider,
+        ]);
+
+        return $accountFeaturesService;
     }
 }

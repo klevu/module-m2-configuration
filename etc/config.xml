@@ -19,7 +19,7 @@
                 <url_indexing/>
                 <url_js/>
                 <url_search/>
-                <url_tiers>tiers.klevu.com</url_tiers>
+                <url_tiers/>
             </developer>
         </klevu_configuration>
     </default>

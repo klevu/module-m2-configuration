@@ -31,9 +31,6 @@
     <preference for="Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupActionInterface"
                 type="Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupAction"/>
 
-    <preference for="Klevu\Configuration\Service\Action\CacheAccountActionInterface"
-                type="Klevu\Configuration\Service\Action\CacheAccountAction"/>
-
     <preference for="Klevu\Configuration\Service\Action\Sdk\Account\CreateAccountCredentialsActionInterface"
                 type="Klevu\Configuration\Service\Action\Sdk\Account\CreateAccountCredentialsAction"/>
 
@@ -45,9 +42,6 @@
 
     <preference for="Klevu\Configuration\Service\CheckApiKeysServiceInterface"
                 type="Klevu\Configuration\Service\CheckApiKeysService"/>
-
-    <preference for="Klevu\Configuration\Service\GetAccountFeaturesServiceInterface"
-                type="Klevu\Configuration\Service\GetAccountFeaturesService"/>
 
     <preference for="Klevu\Configuration\Service\GetBearerTokenInterface"
                 type="Klevu\Configuration\Service\GetBearerTokenService"/>
@@ -63,12 +57,6 @@
 
     <preference for="Klevu\Configuration\Service\Provider\AuthKeyProviderInterface"
                 type="Klevu\Configuration\Service\Provider\AuthKeyProvider"/>
-
-    <preference for="Klevu\Configuration\Service\Provider\AccountCacheKeyProviderInterface"
-                type="Klevu\Configuration\Service\Provider\AccountCacheKeyProvider"/>
-
-    <preference for="Klevu\Configuration\Service\Provider\CachedAccountProviderInterface"
-                type="Klevu\Configuration\Service\Provider\CachedAccountProvider"/>
 
     <preference for="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProviderInterface"
                 type="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProvider"/>
@@ -103,14 +91,11 @@
     <preference for="Klevu\Configuration\Service\RemoveApiKeysServiceInterface"
                 type="Klevu\Configuration\Service\RemoveApiKeysService"/>
 
-    <preference for="Klevu\Configuration\ViewModel\Config\AccountFeaturesInterface"
-                type="Klevu\Configuration\ViewModel\Config\AccountFeatures"/>
-
     <preference for="Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface"
                 type="Klevu\PhpSDK\Service\Account\AccountFeaturesService"/>
 
     <preference for="Klevu\PhpSDK\Api\Service\Account\AccountLookupServiceInterface"
-                type="Klevu\Configuration\Service\Account\AccountLookupService"/>
+                type="Klevu\Configuration\Service\Account\AccountLookupService"/> <!-- Virtual type defined below -->
 
     <preference for="Klevu\PhpSDK\Provider\BaseUrlsProviderInterface"
                 type="Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider"/>
@@ -155,7 +140,8 @@
     <!-- ARGUMENTS -->
     <type name="Klevu\Configuration\Service\Action\Sdk\Account\AccountFeaturesAction">
         <arguments>
-            <argument name="accountFeaturesService" xsi:type="object">Klevu\Configuration\Service\Account\AccountFeaturesService</argument>
+            <argument name="accountFeaturesService"
+                      xsi:type="object">Klevu\Configuration\Service\Account\AccountFeaturesService</argument>
         </arguments>
     </type>
 
@@ -183,7 +169,7 @@
 
     <type name="Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider">
         <arguments>
-            <argument name="fallbackBaseUrlsProvider" xsi:type="object">Klevu\PhpSDK\Provider\BaseUrlsProvider</argument>
+            <argument name="fallbackBaseUrlsProviderFactory" xsi:type="object">Klevu\PhpSDK\Provider\BaseUrlsProviderFactory</argument>
         </arguments>
     </type>
 
@@ -220,12 +206,6 @@
         </arguments>
     </type>
 
-    <type name="Klevu\Configuration\ViewModel\Config\AccountFeatures">
-        <arguments>
-            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
-        </arguments>
-    </type>
-
     <type name="Klevu\Configuration\WebApi\Integration\CheckApiKeys">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
@@ -241,7 +221,8 @@
     <virtualType name="Klevu\Configuration\Service\Account\AccountFeaturesService"
                  type="Klevu\PhpSDK\Service\Account\AccountFeaturesService">
         <arguments>
-            <argument name="baseUrlsProvider" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider</argument>
+            <argument name="baseUrlsProvider"
+                      xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider</argument>
             <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
             <argument name="requestFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
             <argument name="responseFactory" xsi:type="object">GuzzleHttp\Psr7\HttpFactory</argument>
@@ -253,6 +234,7 @@
             <argument name="systemInformationProviders" xsi:type="array">
                 <item name="magento-framework" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\SystemInformation\MagentoFrameworkProvider</item>
                 <item name="magento-inventory" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\SystemInformation\MagentoInventoryProvider</item>
+                <item name="klevu-m2-configuration" xsi:type="object">Klevu\Configuration\Service\Provider\Sdk\UserAgent\SystemInformation\ConfigurationProvider</item>
             </argument>
         </arguments>
     </type>

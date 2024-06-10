@@ -129,7 +129,7 @@ class RemoveApiKeyServiceTest extends TestCase
             UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING => null,
             UpdateEndpoints::CONFIG_XML_PATH_URL_JS => null,
             UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH => null,
-            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => 'tiers.klevu.com', // default setting
+            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS => null,
         ];
         foreach ($paths as $path => $value) {
             $configValue = $scopeConfig->getValue(

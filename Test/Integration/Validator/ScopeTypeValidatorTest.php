@@ -16,6 +16,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 class ScopeTypeValidatorTest extends TestCase
 {
@@ -120,6 +121,92 @@ class ScopeTypeValidatorTest extends TestCase
             [ScopeInterface::SCOPE_GROUPS],
             [ScopeInterface::SCOPE_WEBSITE], // @TODO remove when channels are available
             [ScopeInterface::SCOPE_WEBSITES], // @TODO remove when channels are available
+        ];
+    }
+
+    /**
+     * @dataProvider testIsValid_ReturnsTrue_ValidValue_DataProvider
+     */
+    public function testIsValid_ReturnsTrue_ValidValue(string $validValue): void
+    {
+        $validator = $this->instantiateScopeTypeValidator();
+        $isValid = $validator->isValid($validValue);
+        $hasMessages = $validator->hasMessages();
+
+        $this->assertTrue($isValid);
+        $this->assertFalse($hasMessages);
+    }
+
+    /**
+     * @dataProvider testIsValid_ReturnsFalse_InvalidValue_InSingleStoreMode_DataProvider
+     */
+    public function testIsValid_ReturnsFalse_InvalidValue_InSingleStoreMode(string $invalidType): void
+    {
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+        $validator = $this->instantiateScopeTypeValidator();
+        $isValid = $validator->isValid($invalidType);
+        $hasMessages = $validator->hasMessages();
+        $messages = $validator->getMessages();
+
+        $this->assertFalse($isValid);
+        $this->assertTrue($hasMessages);
+        $this->assertContains(
+            needle: sprintf(
+                'Invalid Scope provided. Expected one of %s; received %s.',
+                implode(
+                    separator: ', ',
+                    array: [
+                        ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                    ],
+                ),
+                $invalidType,
+            ),
+            haystack: $messages,
+        );
+    }
+
+    /**
+     * @return mixed[][]
+     */
+    public function testIsValid_ReturnsFalse_InvalidValue_InSingleStoreMode_DataProvider(): array
+    {
+        return [
+            ['string'],
+            ['global'],
+            [ScopeInterface::SCOPE_STORE],
+            [ScopeInterface::SCOPE_STORES],
+            [ScopeInterface::SCOPE_GROUP],
+            [ScopeInterface::SCOPE_GROUPS],
+            [ScopeInterface::SCOPE_WEBSITE], // @TODO remove when channels are available
+            [ScopeInterface::SCOPE_WEBSITES], // @TODO remove when channels are available
+        ];
+    }
+
+    public function testIsValid_ReturnsTrue_ValidValue_InSingleStoreMode(): void
+    {
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+        $validator = $this->instantiateScopeTypeValidator();
+        $isValid = $validator->isValid(ScopeConfigInterface::SCOPE_TYPE_DEFAULT);
+        $hasMessages = $validator->hasMessages();
+
+        $this->assertTrue($isValid);
+        $this->assertFalse($hasMessages);
+    }
+
+    /**
+     * @return mixed[][]
+     */
+    public function testIsValid_ReturnsTrue_ValidValue_DataProvider(): array
+    {
+        return [
+            [ScopeInterface::SCOPE_STORE],
+            [ScopeInterface::SCOPE_STORES],
         ];
     }
 

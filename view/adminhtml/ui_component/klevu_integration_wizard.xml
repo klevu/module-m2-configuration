@@ -194,12 +194,16 @@
                 <label translate="true">Auth Key</label>
             </settings>
         </field>
-        <field name="display_scope" formElement="input" sortOrder="70">
+        <field name="display_scope"
+               formElement="input"
+               sortOrder="70">
             <settings>
                 <elementTmpl>ui/form/element/text</elementTmpl>
                 <label translate="true">Integration Scope</label>
+                <visible>true</visible>
                 <imports>
                     <link name="value">${ $.provider }:data.display_scope</link>
+                    <link name="visible">${ $.provider }:data.multi_store_mode</link>
                 </imports>
             </settings>
         </field>

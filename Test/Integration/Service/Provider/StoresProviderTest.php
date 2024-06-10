@@ -19,8 +19,10 @@ use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
 use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers StoresProvider
@@ -146,5 +148,36 @@ class StoresProviderTest extends TestCase
             ),
         );
         $this->assertCount(expectedCount: 1, haystack: $filteredResult3);
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     */
+    public function testGet_ReturnsArrayOfStores_WithRequestedApiKey_InSingleStoreMode(): void
+    {
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+        $storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $defaultStore = $storeManager->getDefaultStoreView();
+        $scopeProvider = $this->objectManager->create(ScopeProviderInterface::class);
+        $scopeProvider->setCurrentScope(scope: $defaultStore);
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider,
+            jsApiKey: 'klevu-js-api-key',
+            restAuthKey: 'klevu-rest-key',
+        );
+
+        $provider = $this->instantiateTestObject();
+        $result = $provider->get('klevu-js-api-key');
+        $this->assertArrayHasKey(key: $defaultStore->getId(), array: $result);
+        $filteredResult = array_filter(
+            array: $result,
+            callback: static fn (StoreInterface $store): bool => (
+                (int)$store->getId() === (int)$defaultStore->getId()
+            ),
+        );
+        $this->assertCount(expectedCount: 1, haystack: $filteredResult);
     }
 }
