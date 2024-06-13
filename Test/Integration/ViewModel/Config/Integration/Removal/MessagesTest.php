@@ -6,27 +6,26 @@
 
 declare(strict_types=1);
 
-// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+namespace Klevu\Configuration\Test\Integration\ViewModel\Config\Integration\Removal;
 
-namespace Klevu\Configuration\Test\Integration\ViewModel\Config\Integration;
-
-use Klevu\Configuration\ViewModel\Config\FieldsetInterface;
-use Klevu\Configuration\ViewModel\Config\Integration\StoreList;
+use Klevu\Configuration\ViewModel\Config\Integration\Removal\Messages;
+use Klevu\Configuration\ViewModel\MessageInterface;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
- * @covers StoreList
- * @method StoreList instantiateTestObject(?array $arguments = null)
- * @method StoreList instantiateTestObjectFromInterface(?array $arguments = null)
+ * @covers Messages
+ * @method MessageInterface instantiateTestObject(?array $arguments = null)
+ * @method MessageInterface instantiateTestObjectFromInterface(?array $arguments = null)
  * @magentoAppArea adminhtml
  * @magentoAppIsolation enabled
  */
-class StoreListTest extends TestCase
+class MessagesTest extends TestCase
 {
     use ObjectInstantiationTrait;
     use TestImplementsInterfaceTrait;
@@ -34,7 +33,7 @@ class StoreListTest extends TestCase
     /**
      * @var ObjectManagerInterface|null
      */
-    private ?ObjectManagerInterface $objectManager = null; // @phpstan-ignore-line
+    private ?ObjectManagerInterface $objectManager = null;
 
     /**
      * @return void
@@ -42,8 +41,8 @@ class StoreListTest extends TestCase
     protected function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
-        $this->implementationFqcn = StoreList::class;
-        $this->interfaceFqcn = FieldsetInterface::class;
+        $this->implementationFqcn = Messages::class;
+        $this->interfaceFqcn = MessageInterface::class;
     }
 
     public function testGetMessages_ReturnsInfoMessage_WhenNotSingleStoreMode(): void
@@ -53,14 +52,18 @@ class StoreListTest extends TestCase
             value: 0,
         );
 
+        $scope = 'store';
+        $request = $this->objectManager->get(RequestInterface::class);
+        $request->setParams(['scope' => $scope]);
+
         $viewModel = $this->instantiateTestObject();
         $result = $viewModel->getMessages();
 
-        $this->assertArrayHasKey(key: 'info', array: $result);
-        $this->assertCount(expectedCount: 1, haystack: $result['info']);
-        $messagePhrase = array_shift($result['info']);
+        $this->assertArrayHasKey(key: 'warning', array: $result);
+        $this->assertCount(expectedCount: 1, haystack: $result['warning']);
+        $messagePhrase = array_shift($result['warning']);
         $this->assertSame(
-            expected: 'Note: An integration at Store Scope will override an integration at Website Scope.',
+            expected: sprintf("Warning: This action will remove your integration at '%s' scope.", $scope),
             actual: $messagePhrase->render(),
         );
     }
@@ -75,7 +78,7 @@ class StoreListTest extends TestCase
         $viewModel = $this->instantiateTestObject();
         $result = $viewModel->getMessages();
 
-        $this->assertArrayNotHasKey(key: 'info', array: $result);
+        $this->assertArrayNotHasKey(key: 'warning', array: $result);
         $this->assertCount(expectedCount: 0, haystack: $result);
     }
 }

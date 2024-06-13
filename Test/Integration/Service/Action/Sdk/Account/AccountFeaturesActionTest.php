@@ -14,14 +14,17 @@ use Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupAction;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
 use Klevu\Configuration\Service\Provider\AuthKeyProvider;
 use Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider;
+use Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProviderFactory;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface;
+use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
 use Klevu\PhpSDK\Exception\Api\BadRequestException;
 use Klevu\PhpSDK\Exception\Validation\InvalidDataValidationException;
 use Klevu\PhpSDK\Model\Account\AccountFeatures;
 use Klevu\PhpSDK\Model\Account\AccountFeaturesFactory;
 use Klevu\PhpSDK\Model\AccountCredentialsFactory;
 use Klevu\PhpSDK\Model\AccountFactory;
+use Klevu\PhpSDK\Provider\BaseUrlsProviderInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -235,8 +238,27 @@ class AccountFeaturesActionTest extends TestCase
             ->with($accountCredentials)
             ->willReturn($mockFeatures);
 
+        $mockBaseUrlsProvider = $this->getMockBuilder(BaseUrlsProviderInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockBaseUrlsProviderFactory = $this->getMockBuilder(BaseUrlsProviderFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockBaseUrlsProviderFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($mockBaseUrlsProvider);
+
+        $mockAccountFeaturesServiceFactory = $this->getMockBuilder(AccountFeaturesServiceInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountFeaturesServiceFactory->expects($this->once())
+            ->method('create')
+            ->with(['baseUrlsProvider' => $mockBaseUrlsProvider])
+            ->willReturn($mockAccountFeaturesService);
+
         $accountFeaturesAction = $this->instantiateAccountFeaturesAction(arguments: [
-            'accountFeaturesService' => $mockAccountFeaturesService,
+            'accountFeaturesServiceFactory' => $mockAccountFeaturesServiceFactory,
+            'baseUrlProviderFactory' => $mockBaseUrlsProviderFactory,
         ]);
         $accountFeatures = $accountFeaturesAction->execute(account: $mockAccount);
 

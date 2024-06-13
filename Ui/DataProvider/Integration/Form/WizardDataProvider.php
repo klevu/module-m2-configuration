@@ -12,11 +12,13 @@ use Klevu\Configuration\Service\GetBearerTokenInterface;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface;
 use Klevu\Configuration\Validator\ValidatorInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\ValueInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Ui\DataProvider\AbstractDataProvider;
 use Psr\Log\LoggerInterface;
@@ -28,6 +30,7 @@ class WizardDataProvider extends AbstractDataProvider
     private const PARAM_SCOPE = 'scope';
     private const PARAM_DISPLAY_SCOPE = 'display_scope';
     private const BEARER = 'bearer';
+    private const MULTI_STORE_MODE = 'multi_store_mode';
 
     /**
      * @var RequestInterface
@@ -110,7 +113,7 @@ class WizardDataProvider extends AbstractDataProvider
     public function getData(): array
     {
         $scopeId = $this->getScopeId();
-        if (!$scopeId) {
+        if (null === $scopeId) {
             return [
                 'totalRecords' => 0,
                 'items' => [],
@@ -125,7 +128,6 @@ class WizardDataProvider extends AbstractDataProvider
             },
         );
         $return = [];
-
         foreach ($items as $item) {
             $key = str_replace(
                 search: static::CONFIG_XML_PATH_KLEVU_AUTH_KEYS . '/',
@@ -137,6 +139,7 @@ class WizardDataProvider extends AbstractDataProvider
         $return[$scopeId][self::PARAM_SCOPE_ID] = $scopeId;
         $return[$scopeId][self::PARAM_SCOPE] = $this->currentScope;
         $return[$scopeId][self::BEARER] = $this->getBearerToken->execute();
+        $return[$scopeId][self::MULTI_STORE_MODE] = !(bool)$this->storeManager->isSingleStoreMode();
         $return[$scopeId][self::PARAM_DISPLAY_SCOPE] = ucwords(rtrim($this->currentScope, 's'))
             . ' ID: ' . $scopeId;
 
@@ -167,14 +170,16 @@ class WizardDataProvider extends AbstractDataProvider
         if (!$this->isScopeValid(scope: $scope) || !$this->isScopeIdValid(scopeId: $scopeId)) {
             return $return;
         }
-
         $isStoreScope = in_array(
             needle: $scope,
             haystack: [ScopeInterface::SCOPE_STORES, ScopeInterface::SCOPE_STORE],
             strict: true,
         );
         try {
-            if ($isStoreScope) {
+            if ($this->storeManager->isSingleStoreMode()) {
+                $return = Store::DEFAULT_STORE_ID;
+                $this->currentScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+            } elseif ($isStoreScope) {
                 $store = $this->storeManager->getStore(storeId: $scopeId);
                 $return = (int)$store->getId();
                 $this->currentScope = ScopeInterface::SCOPE_STORES;

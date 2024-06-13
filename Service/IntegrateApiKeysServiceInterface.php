@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\Service;
 
-use Klevu\Configuration\Exception\AccountCacheScopeException;
 use Klevu\Configuration\Exception\Integration\InactiveAccountException;
 use Klevu\Configuration\Exception\Integration\InvalidPlatformException;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
@@ -29,7 +28,6 @@ interface IntegrateApiKeysServiceInterface
      * @param string $scopeType
      *
      * @return AccountInterface
-     * @throws AccountCacheScopeException
      * @throws AccountNotFoundException
      * @throws BadRequestException
      * @throws BadResponseException

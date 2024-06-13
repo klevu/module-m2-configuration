@@ -110,15 +110,18 @@ class StoresProvider implements StoresProviderInterface
         }
         $storeItems = array_filter(
             array: $configItems,
-            callback: static function (ConfigValue|DataObject $configItem) use ($store): bool {
-                $storeScope = in_array(
-                    needle: $configItem->getScope(),
-                    haystack: [ScopeInterface::SCOPE_STORES, ScopeInterface::SCOPE_STORE],
-                    strict: true,
-                );
+            callback: function (ConfigValue|DataObject $configItem) use ($store): bool {
+                $storeFilter = $this->storeManager->isSingleStoreMode()
+                    || (
+                        in_array(
+                            needle: $configItem->getScope(),
+                            haystack: [ScopeInterface::SCOPE_STORES, ScopeInterface::SCOPE_STORE],
+                            strict: true,
+                        )
+                        && (int)$configItem->getScopeId() === (int)$store->getId()
+                    );
 
-                return $storeScope
-                    && (int)$configItem->getScopeId() === (int)$store->getId()
+                return $storeFilter
                     && null !== $configItem->getValue()
                     && ($configItem->getPath() === ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY
                         || $configItem->getPath() === AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY);

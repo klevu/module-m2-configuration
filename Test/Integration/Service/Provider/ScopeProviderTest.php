@@ -399,8 +399,8 @@ class ScopeProviderTest extends TestCase
         $provider->setCurrentScopeByCode('default', ScopeInterface::SCOPE_STORES);
 
         $currentScope = $provider->getCurrentScope();
-        $this->assertSame(expected: ScopeConfigInterface::SCOPE_TYPE_DEFAULT, actual: $currentScope->getScopeType());
-        $this->assertNull(actual: $currentScope->getScopeId());
+        $this->assertSame(expected: ScopeInterface::SCOPE_STORES, actual: $currentScope->getScopeType());
+        $this->assertSame(expected: 1, actual: $currentScope->getScopeId());
     }
 
     /**
@@ -413,8 +413,8 @@ class ScopeProviderTest extends TestCase
         $provider->setCurrentScopeByCode('base', ScopeInterface::SCOPE_WEBSITES);
 
         $currentScope = $provider->getCurrentScope();
-        $this->assertSame(expected: ScopeConfigInterface::SCOPE_TYPE_DEFAULT, actual: $currentScope->getScopeType());
-        $this->assertNull(actual: $currentScope->getScopeId());
+        $this->assertSame(expected: ScopeInterface::SCOPE_WEBSITES, actual: $currentScope->getScopeType());
+        $this->assertSame(expected: 1, actual: $currentScope->getScopeId());
     }
 
     /**

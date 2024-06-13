@@ -14,6 +14,7 @@ use Klevu\Configuration\Service\Action\Sdk\Account\AccountLookupActionInterface;
 use Klevu\Configuration\Service\Action\Sdk\AccountDetailsAction;
 use Klevu\Configuration\Service\IntegrateApiKeysService;
 use Klevu\Configuration\WebApi\Integration\IntegrateApiKeys;
+use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
 use Klevu\PhpSDK\Exception\Api\BadRequestException;
 use Klevu\PhpSDK\Exception\Api\BadResponseException;
 use Klevu\PhpSDK\Model\Account\AccountFeaturesFactory;
@@ -171,6 +172,20 @@ class IntegrateApiKeysTest extends TestCase
     }
 
     /**
+     * @return string[][]
+     */
+    public function testExecute_ReturnsError_WhenValidationFails_AuthKeyInvalid_dataProvider(): array
+    {
+        return [
+            [$this->generateAuthKey(length: 9)],
+            [$this->generateAuthKey(length: 129)],
+            [$this->generateAuthKey(length: 10) . '!'],
+            [$this->generateAuthKey(length: 10) . '@'],
+            [$this->generateAuthKey(length: 10) . '$'],
+        ];
+    }
+
+    /**
      * @dataProvider testExecute_ReturnsError_WhenValidationFails_ScopeTypeSetToWebsite_dataProvider
      */
     public function testExecute_ReturnsError_WhenValidationFails_ScopeTypeSetToWebsite(string $invalidScopeType): void
@@ -249,20 +264,6 @@ class IntegrateApiKeysTest extends TestCase
             [ScopeInterface::SCOPE_GROUP],
             [ScopeInterface::SCOPE_GROUPS],
             ['default'],
-        ];
-    }
-
-    /**
-     * @return string[][]
-     */
-    public function testExecute_ReturnsError_WhenValidationFails_AuthKeyInvalid_dataProvider(): array
-    {
-        return [
-            [$this->generateAuthKey(length: 9)],
-            [$this->generateAuthKey(length: 129)],
-            [$this->generateAuthKey(length: 10) . '!'],
-            [$this->generateAuthKey(length: 10) . '@'],
-            [$this->generateAuthKey(length: 10) . '$'],
         ];
     }
 
@@ -595,10 +596,16 @@ class IntegrateApiKeysTest extends TestCase
             ->method('execute')
             ->with($accountCredentials)
             ->willReturn($accountFeatures);
-        $accountFeaturesAction = $this->objectManager->create(type: AccountFeaturesActionInterface::class, arguments: [
-            'accountFeaturesService' => $mockSdkAccountFeaturesService,
-        ]);
+        $mockAccountFeaturesServiceFactory = $this->getMockBuilder(AccountFeaturesServiceInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountFeaturesServiceFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($mockSdkAccountFeaturesService);
 
+        $accountFeaturesAction = $this->objectManager->create(type: AccountFeaturesActionInterface::class, arguments: [
+            'accountFeaturesServiceFactory' => $mockAccountFeaturesServiceFactory,
+        ]);
         $accountDetailsAction = $this->objectManager->create(type: AccountDetailsAction::class, arguments: [
             'accountLookupAction' => $accountLookupAction,
             'accountFeaturesAction' => $accountFeaturesAction,

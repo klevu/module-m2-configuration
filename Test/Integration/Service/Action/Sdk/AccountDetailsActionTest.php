@@ -12,6 +12,7 @@ use Klevu\Configuration\Service\Action\Sdk\AccountDetailsAction;
 use Klevu\Configuration\Service\Action\Sdk\AccountDetailsActionInterface;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface;
+use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
 use Klevu\PhpSDK\Api\Service\Account\AccountLookupServiceInterface;
 use Klevu\PhpSDK\Exception\AccountNotFoundException;
 use Klevu\PhpSDK\Exception\Validation\InvalidDataValidationException;
@@ -205,9 +206,16 @@ class AccountDetailsActionTest extends TestCase
         $mockAccountFeaturesService->expects($this->once())
             ->method('execute')
             ->willReturn($mockAccountFeatures);
+        $mockAccountFeaturesServiceFactory = $this->getMockBuilder(AccountFeaturesServiceInterfaceFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountFeaturesServiceFactory->expects($this->once())
+            ->method('create')
+            ->willReturn($mockAccountFeaturesService);
+
         $this->objectManager->addSharedInstance(
-            instance: $mockAccountFeaturesService,
-            className: AccountFeaturesServiceInterface::class,
+            instance: $mockAccountFeaturesServiceFactory,
+            className: AccountFeaturesServiceInterfaceFactory::class,
             forPreference: true,
         );
         $this->objectManager->addSharedInstance(

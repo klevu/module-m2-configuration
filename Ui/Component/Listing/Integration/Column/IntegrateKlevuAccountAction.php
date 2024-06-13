@@ -6,14 +6,43 @@
 
 declare(strict_types=1);
 
-namespace Klevu\Configuration\Ui\Component\Listing\Column;
+namespace Klevu\Configuration\Ui\Component\Listing\Integration\Column;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Phrase;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Ui\Component\Listing\Columns\Column;
 
-class IntegrateKlevuAccount extends Column
+class IntegrateKlevuAccountAction extends Column
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    private readonly StoreManagerInterface $storeManager;
+
+    /**
+     * @param ContextInterface $context
+     * @param UiComponentFactory $uiComponentFactory
+     * @param StoreManagerInterface $storeManager
+     * @param mixed[] $components
+     * @param mixed[] $data
+     */
+    public function __construct(
+        ContextInterface $context,
+        UiComponentFactory $uiComponentFactory,
+        StoreManagerInterface $storeManager,
+        array $components = [],
+        array $data = [],
+    ) {
+        $this->storeManager = $storeManager;
+
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+    }
+
     /**
      * @param mixed[] $dataSource
      *
@@ -34,7 +63,7 @@ class IntegrateKlevuAccount extends Column
                 $item[$name]['remove_store'] = $this->getRemoveStoreLink(item: $item);
             }
             // @TODO add when channels are available
-//            if (!$storeLevel) {
+//            if (!$storeLevel && !$this->storeManager->isSingleStoreMode()) {
 //                $item[$name]['integrate_website'] = $this->getIntegrateWebsiteLink(item: $item);
 //                if ($item['website_integrated'] ?? null) {
 //                    $item[$name]['remove_website'] = $this->getRemoveWebsiteLink(item: $item);
@@ -133,8 +162,12 @@ class IntegrateKlevuAccount extends Column
                         '.klevu_integration_wizard_container.klevu_integration_wizard',
                     'target' => 'updateData',
                     'params' => [
-                        'scope_id' => $item['store_id'] ?? null,
-                        'scope' => ScopeInterface::SCOPE_STORES,
+                        'scope_id' => $this->storeManager->isSingleStoreMode()
+                            ? Store::DEFAULT_STORE_ID
+                            : $item['store_id'] ?? null,
+                        'scope' => $this->storeManager->isSingleStoreMode()
+                            ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+                            : ScopeInterface::SCOPE_STORES,
                     ],
                 ],
             ],
@@ -151,6 +184,11 @@ class IntegrateKlevuAccount extends Column
      */
     private function getStoreLabel(array $item): Phrase
     {
+        if ((bool)$this->storeManager->isSingleStoreMode()) {
+            return ($item['store_integrated'] ?? null)
+                ? __('Edit Keys')
+                : __('Integrate');
+        }
         return ($item['store_integrated'] ?? null)
             ? __('Edit Store Keys')
             : __('Integrate Store');
@@ -165,6 +203,11 @@ class IntegrateKlevuAccount extends Column
      */
     private function getTitle(string $scope, string $scopeId, bool $remove = false): Phrase
     {
+        if ((bool)$this->storeManager->isSingleStoreMode()) {
+            return $remove
+                ? __('Remove Integration with Klevu.')
+                : __('Integrate with Klevu.');
+        }
         $title = $remove
             ? 'Remove Integration with Klevu. %1: %2'
             : 'Integrate with Klevu. %1: %2';
@@ -183,6 +226,10 @@ class IntegrateKlevuAccount extends Column
      */
     private function getRemoveStoreLink(array $item): array
     {
+        $label = $this->storeManager->isSingleStoreMode()
+            ? __('Remove Keys')
+            : __('Remove Store Keys');
+
         return [
             'callback' => [
                 [
@@ -208,13 +255,18 @@ class IntegrateKlevuAccount extends Column
                         '.klevu_integration_removal_container.klevu_integration_removal',
                     'target' => 'updateData',
                     'params' => [
-                        'scope_id' => $item['store_id'] ?? null,
-                        'scope' => ScopeInterface::SCOPE_STORES,
+                        'scope_id' => $this->storeManager->isSingleStoreMode()
+                            ? Store::DEFAULT_STORE_ID
+                            : $item['store_id'] ?? null,
+                        'scope' => $this->storeManager->isSingleStoreMode()
+                            ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+                            : ScopeInterface::SCOPE_STORES,
+
                     ],
                 ],
             ],
             'href' => '#',
-            'label' => __('Remove Store Keys'),
+            'label' => $label,
             'hidden' => false,
         ];
     }

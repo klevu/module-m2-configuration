@@ -2,10 +2,10 @@
     "name": "klevu/module-m2-configuration",
     "description": "Provides integration and a configuration framework for other Klevu modules to extend",
     "type": "magento2-module",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "require": {
-        "klevu/module-m2-logger": "0.1.0",
-        "klevu/php-sdk": "0.1.0",
+        "klevu/module-m2-logger": "0.2.0",
+        "klevu/php-sdk": "0.2.0",
         "magento/framework": "^103.0.4",
         "magento/module-authorization": "^100.4.4",
         "magento/module-config": "^101.2.4",
@@ -19,7 +19,7 @@
         "psr/log": "@stable"
     },
     "require-dev": {
-        "klevu/module-m2-test-fixtures": "0.1.0"
+        "klevu/module-m2-test-fixtures": "0.2.0"
     },
     "autoload": {
         "files": [

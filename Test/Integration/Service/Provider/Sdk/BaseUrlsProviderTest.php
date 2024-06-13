@@ -12,7 +12,10 @@ namespace Klevu\Configuration\Test\Integration\Service\Provider\Sdk;
 
 use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider;
+use Klevu\PhpSDK\Api\Model\AccountInterface;
+use Klevu\PhpSDK\Provider\BaseUrlsProviderFactory;
 use Klevu\PhpSDK\Provider\BaseUrlsProviderInterface;
+use Klevu\PhpSDK\Provider\Indexing\IndexingVersions;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
@@ -97,8 +100,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -111,8 +120,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -125,8 +140,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -157,12 +178,19 @@ class BaseUrlsProviderTest extends TestCase
             $mockBaseUrlsProvider->method($methodName)
                 ->willReturn($returnValue);
         }
+        $mockBaseUrlsProviderFactory = $this->getMockBuilder(BaseUrlsProviderFactory::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockBaseUrlsProviderFactory->expects($this->once())
+            ->method('create')
+            ->with(['account' => null])
+            ->willReturn($mockBaseUrlsProvider);
 
         /** @var ScopeProviderInterface $scopeProvider */
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
 
         $baseUrlsProvider = $this->instantiateTestObject([
-            'fallbackBaseUrlsProvider' => $mockBaseUrlsProvider,
+            'fallbackBaseUrlsProviderFactory' => $mockBaseUrlsProviderFactory,
         ]);
 
         // Default Scope
@@ -172,12 +200,80 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         // KMC URL hardcoded to config.xml
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
-        // Tiers URL hardcoded to config.xml
-        $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
+        $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
+     */
+    public function testGetUrls_WithFallbackProvider_GeneratedViaAccount(): void
+    {
+        $this->deleteExistingUrlsFromConfig();
+
+        $mockAccount = $this->getMockBuilder(AccountInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccount->expects($this->once())
+            ->method('getAnalyticsUrl')
+            ->willReturn('stats-custom.klevu.com');
+        $mockAccount->expects($this->once())
+            ->method('getSmartCategoryMerchandisingUrl')
+            ->willReturn('catnav-custom.klevu.com');
+        $mockAccount->expects($this->once())
+            ->method('getIndexingUrl')
+            ->willReturn('indexing-custom.klevu.com');
+        $mockAccount->expects($this->once())
+            ->method('getJsUrl')
+            ->willReturn('js-custom.klevu.com');
+        $mockAccount->expects($this->once())
+            ->method('getSearchUrl')
+            ->willReturn('search-custom.klevu.com');
+        $mockAccount->expects($this->once())
+            ->method('getTiersUrl')
+            ->willReturn('tiers-custom.klevu.com');
+
+        $baseUrlsProviderFactory = $this->objectManager->create(
+            BaseUrlsProviderFactory::class,
+            ['account' => $mockAccount],
+        );
+
+        $baseUrlsProvider = $this->instantiateTestObject([
+            'fallbackBaseUrlsProviderFactory' => $baseUrlsProviderFactory,
+            'account' => $mockAccount,
+        ]);
+
+        /** @var ScopeProviderInterface $scopeProvider */
+        $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
+        // Default Scope
+        $scopeProvider->unsetCurrentScope();
+        $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
+        $this->assertSame('catnav-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
+        $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
+        $this->assertSame('search-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
+        $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
+        // Default value from SDK, not set in account
+        $this->assertSame('api.ksearchnet.com', $baseUrlsProvider->getApiUrl());
+        // KMC URL hardcoded to config.xml
+        $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
     }
 
     /**
@@ -227,8 +323,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getv2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -241,8 +343,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -255,8 +363,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -322,8 +436,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -336,8 +456,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -350,8 +476,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -364,8 +496,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -431,8 +569,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -445,8 +589,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -459,8 +609,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing-custom.klevu.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing-custom.klevu.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing-custom.klevu.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing-custom.klevu.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
@@ -473,8 +629,14 @@ class BaseUrlsProviderTest extends TestCase
         $this->assertSame('stats.ksearchnet.com', $baseUrlsProvider->getAnalyticsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
         $this->assertSame('box.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
-        $this->assertSame('indexing.ksearchnet.com', $baseUrlsProvider->getIndexingUrl());
-        $this->assertSame('indexing.ksearchnet.com/v2', $baseUrlsProvider->getV2IndexingUrl());
+        $this->assertSame(
+            'indexing.ksearchnet.com',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
+        );
+        $this->assertSame(
+            'indexing.ksearchnet.com/v2',
+            $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
+        );
         $this->assertSame('js.klevu.com', $baseUrlsProvider->getJsUrl());
         $this->assertSame(null, $baseUrlsProvider->getSearchUrl());
         $this->assertSame('tiers.klevu.com', $baseUrlsProvider->getTiersUrl());

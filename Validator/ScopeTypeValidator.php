@@ -8,11 +8,17 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\Validator;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Validator\AbstractValidator;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class ScopeTypeValidator extends AbstractValidator implements ValidatorInterface
 {
+    /**
+     * @var StoreManagerInterface
+     */
+    private readonly StoreManagerInterface $storeManager;
     /**
      * @var string[]
      */
@@ -22,6 +28,14 @@ class ScopeTypeValidator extends AbstractValidator implements ValidatorInterface
 //        ScopeInterface::SCOPE_WEBSITE, // @TODO add when channels are available
 //        ScopeInterface::SCOPE_WEBSITES, // @TODO add when channels are available
     ];
+
+    /**
+     * @param StoreManagerInterface $storeManager
+     */
+    public function __construct(StoreManagerInterface $storeManager)
+    {
+        $this->storeManager = $storeManager;
+    }
 
     /**
      * @param mixed $value
@@ -63,13 +77,17 @@ class ScopeTypeValidator extends AbstractValidator implements ValidatorInterface
      */
     private function validateValue(string $value): bool
     {
-        if (in_array($value, $this->allowedScopes, true)) {
+        $validScopes = $this->storeManager->isSingleStoreMode()
+            ? [ScopeConfigInterface::SCOPE_TYPE_DEFAULT]
+            : $this->allowedScopes;
+
+        if (in_array($value, $validScopes, true)) {
             return true;
         }
         $this->_addMessages([
             __(
                 'Invalid Scope provided. Expected one of %1; received %2.',
-                implode(', ', $this->allowedScopes),
+                implode(', ', $validScopes),
                 $value,
             )->render(),
         ]);

@@ -36,7 +36,7 @@ class Messages implements MessageInterface
      */
     private readonly LoggerInterface $logger;
     /**
-     * @var string[][]
+     * @var Phrase[][]
      */
     private array $messages = [];
 
@@ -66,11 +66,13 @@ class Messages implements MessageInterface
         $scope = $this->request->getParam(key: 'scope');
         // $scopeId = $this->request->getParam(key: 'scope_id'); // @TODO add when channels are available
 
-        $this->messages['warning'][] = __(
-            "Warning: This action will remove your integration at '%1' scope.",
-            $scope,
-        );
-        // @TODO add when channels are available
+        if (!$this->storeManager->isSingleStoreMode()) {
+            $this->messages['warning'][] = __(
+                "Warning: This action will remove your integration at '%1' scope.",
+                $scope,
+            );
+
+            // @TODO add when channels are available
 //        if ($this->isStoreScope(scope: $scope)) {
 //            if (!$this->isWebsiteIntegrated(scopeId: (int)$scopeId)) {
 //                $this->messages['warning'][] = __(
@@ -84,6 +86,7 @@ class Messages implements MessageInterface
 //                );
 //            }
 //        }
+        }
 
         return $this->messages;
     }

@@ -16,9 +16,11 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Provider\StoreScopeProvider
@@ -195,6 +197,30 @@ class StoreScopeProviderTest extends TestCase
 
         $this->assertNotNull((int)$store->getId());
         $this->assertSame((int)$store->getId(), (int)$currentStore->getId());
+    }
+
+    /**
+     * @magentoAppArea adminhtml
+     */
+    public function testGetCurrentStore_ReturnsStoreInParams_WhenAppAreaIsAdmin_SingleStoreMode(): void
+    {
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+
+        $mockRequest = $this->getMockBuilder(RequestInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockRequest->expects($this->never())
+            ->method('getParams');
+
+        $storeScopeProvider = $this->instantiateStoreScopeProvider([
+            'request' => $mockRequest,
+        ]);
+        $currentStore = $storeScopeProvider->getCurrentStore();
+
+        $this->assertSame(Store::DEFAULT_STORE_ID, (int)$currentStore->getId());
     }
 
     /**
