@@ -65,6 +65,7 @@ class IntegrateApiKeys implements IntegrateApiKeysInterface
      * @param string $authKey
      * @param int $scopeId
      * @param string|null $scopeType
+     * @param int|null $loggerScopeId
      *
      * @return ApiResponseInterface
      */
@@ -73,9 +74,11 @@ class IntegrateApiKeys implements IntegrateApiKeysInterface
         string $authKey,
         int $scopeId,
         ?string $scopeType = ScopeInterface::SCOPE_STORES,
+        ?int $loggerScopeId = null,
     ): ApiResponseInterface {
         try {
-            $this->scopeProvider->setCurrentScopeById($scopeId, $scopeType);
+            $loggerScopeId = $loggerScopeId ?: $scopeId;
+            $this->scopeProvider->setCurrentScopeById($loggerScopeId, $scopeType);
             $account = $this->integrateApiKeysService->execute(
                 apiKey: $apiKey,
                 authKey: $authKey,

@@ -26,6 +26,7 @@ use Psr\Log\LoggerInterface;
 class WizardDataProvider extends AbstractDataProvider
 {
     public const CONFIG_XML_PATH_KLEVU_AUTH_KEYS = 'klevu_configuration/auth_keys';
+    private const PARAM_LOGGER_SCOPE_ID = 'logger_scope_id';
     private const PARAM_SCOPE_ID = 'scope_id';
     private const PARAM_SCOPE = 'scope';
     private const PARAM_DISPLAY_SCOPE = 'display_scope';
@@ -57,9 +58,9 @@ class WizardDataProvider extends AbstractDataProvider
      */
     private readonly ValidatorInterface $scopeTypeValidator;
     /**
-     * @var string
+     * @var string|null
      */
-    private string $currentScope;
+    private ?string $currentScope = null;
 
     /**
      * @param string $name
@@ -132,10 +133,13 @@ class WizardDataProvider extends AbstractDataProvider
             $key = str_replace(
                 search: static::CONFIG_XML_PATH_KLEVU_AUTH_KEYS . '/',
                 replace: '',
+                // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getPath()
                 subject: $item->getPath(),
             );
+            // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getValue()
             $return[$scopeId][$key] = $item->getValue();
         }
+        $return[$scopeId][self::PARAM_LOGGER_SCOPE_ID] = $this->getLoggerScopeId();
         $return[$scopeId][self::PARAM_SCOPE_ID] = $scopeId;
         $return[$scopeId][self::PARAM_SCOPE] = $this->currentScope;
         $return[$scopeId][self::BEARER] = $this->getBearerToken->execute();
@@ -160,6 +164,8 @@ class WizardDataProvider extends AbstractDataProvider
     }
 
     /**
+     * ID used to save value in core config data
+     *
      * @return int|null
      */
     private function getScopeId(): ?int
@@ -199,6 +205,22 @@ class WizardDataProvider extends AbstractDataProvider
         }
 
         return $return;
+    }
+
+    /**
+     * ID used to log data to var/log/klevu/<store_code>
+     *
+     * @return int|null
+     */
+    private function getLoggerScopeId(): ?int
+    {
+        if ($this->storeManager->isSingleStoreMode()) {
+            $store = $this->storeManager->getDefaultStoreView();
+
+            return (int)$store->getId();
+        }
+
+        return $this->getScopeId();
     }
 
     /**

@@ -208,7 +208,7 @@ class IsStoreIntegratedServiceTest extends TestCase
     public function testExecute_ReturnsTrue_AtWebsiteScope_WhenIntegrated_SingleStoreMode(): void
     {
         $this->markTestSkipped('Skipped until website integration is possible');
-        $this->createStore();
+        $this->createStore(); // @phpstan-ignore-line - see test skipped
         $storeFixture = $this->storeFixturesPool->get('test_store');
         $store = $storeFixture->get();
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);

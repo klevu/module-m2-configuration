@@ -72,6 +72,7 @@ class CheckApiKeys implements CheckApiKeysInterface
      * @param string $authKey
      * @param int|null $scopeId
      * @param string|null $scopeType
+     * @param int|null $loggerScopeId
      *
      * @return ApiResponseInterface
      */
@@ -80,10 +81,12 @@ class CheckApiKeys implements CheckApiKeysInterface
         string $authKey,
         ?int $scopeId = null,
         ?string $scopeType = null,
+        ?int $loggerScopeId = null,
     ): ApiResponseInterface {
         try {
-            if ((null !== $scopeId && null !== $scopeType)) {
-                $this->scopeProvider->setCurrentScopeById($scopeId, $scopeType);
+            $loggerScopeId = $loggerScopeId ?: $scopeId;
+            if ((null !== $loggerScopeId && null !== $scopeType)) {
+                $this->scopeProvider->setCurrentScopeById($loggerScopeId, $scopeType);
             }
             $account = $this->apiKeysService->execute(apiKey: $apiKey, authKey: $authKey);
             $return = $this->getSuccessReturn($account);

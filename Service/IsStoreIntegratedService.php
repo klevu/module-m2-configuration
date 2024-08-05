@@ -115,11 +115,12 @@ class IsStoreIntegratedService implements IsStoreIntegratedServiceInterface
      *
      * @return int|null
      */
-    private function getWebsiteId(
-        StoreInterface|WebsiteInterface|null $store,
-    ): ?int {
-        return method_exists($store, 'getWebsiteId')
-            ? (int)$store->getWebsiteId()
-            : null;
-    }
+    // @todo Reinstate when channels are available
+//    private function getWebsiteId(
+//        StoreInterface|WebsiteInterface|null $store,
+//    ): ?int {
+//        return method_exists($store, 'getWebsiteId')
+//            ? (int)$store->getWebsiteId()
+//            : null;
+//    }
 }

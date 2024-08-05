@@ -11,9 +11,10 @@ namespace Klevu\Configuration\ViewModel\Config\Integration\Removal;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface;
 use Klevu\Configuration\ViewModel\MessageInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
+// @todo remove phpcs suppression when channels available
+use Magento\Framework\Exception\NoSuchEntityException; // phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses.UnusedUse,Generic.Files.LineLength.TooLong
 use Magento\Framework\Phrase;
-use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\ScopeInterface; // phpcs:ignore SlevomatCodingStandard.Namespaces.UnusedUses.UnusedUse,Generic.Files.LineLength.TooLong
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -26,7 +27,8 @@ class Messages implements MessageInterface
     /**
      * @var AuthKeysCollectionProviderInterface
      */
-    private readonly AuthKeysCollectionProviderInterface $authKeysCollectionProvider;
+    // phpcs:ignore Generic.Files.LineLength.TooLong
+    private readonly AuthKeysCollectionProviderInterface $authKeysCollectionProvider; // @phpstan-ignore-line Remove phpstan ignore when channels available
     /**
      * @var StoreManagerInterface
      */
@@ -34,7 +36,8 @@ class Messages implements MessageInterface
     /**
      * @var LoggerInterface
      */
-    private readonly LoggerInterface $logger;
+    // phpcs:ignore Generic.Files.LineLength.TooLong
+    private readonly LoggerInterface $logger; // @phpstan-ignore-line Remove phpstan ignore when channels available
     /**
      * @var Phrase[][]
      */
@@ -96,42 +99,44 @@ class Messages implements MessageInterface
      *
      * @return bool
      */
-    private function isWebsiteIntegrated(int $scopeId): bool
-    {
-        try {
-            $store = $this->storeManager->getStore($scopeId);
-        } catch (NoSuchEntityException $exception) {
-            $this->logger->error(
-                message: 'Method: {method} - Error: {message}',
-                context: [
-                    'method' => __METHOD__,
-                    'message' => $exception->getMessage(),
-                ],
-            );
-
-            return false;
-        }
-        $collection = $this->authKeysCollectionProvider->get(
-            filter: [
-                'scope' => ScopeInterface::SCOPE_WEBSITES,
-                'scope_id' => $store->getWebsiteId(),
-            ],
-        );
-
-        return $collection->getSize() >= 2;
-    }
+    // @todo reinstate when channels are available
+//    private function isWebsiteIntegrated(int $scopeId): bool
+//    {
+//        try {
+//            $store = $this->storeManager->getStore($scopeId);
+//        } catch (NoSuchEntityException $exception) {
+//            $this->logger->error(
+//                message: 'Method: {method} - Error: {message}',
+//                context: [
+//                    'method' => __METHOD__,
+//                    'message' => $exception->getMessage(),
+//                ],
+//            );
+//
+//            return false;
+//        }
+//        $collection = $this->authKeysCollectionProvider->get(
+//            filter: [
+//                'scope' => ScopeInterface::SCOPE_WEBSITES,
+//                'scope_id' => $store->getWebsiteId(),
+//            ],
+//        );
+//
+//        return $collection->getSize() >= 2;
+//    }
 
     /**
      * @param mixed $scope
      *
      * @return bool
      */
-    private function isStoreScope(mixed $scope): bool
-    {
-        return in_array(
-            needle: $scope,
-            haystack: [ScopeInterface::SCOPE_STORE, ScopeInterface::SCOPE_STORES],
-            strict: true,
-        );
-    }
+    // @todo reinstate when channels are available
+//    private function isStoreScope(mixed $scope): bool
+//    {
+//        return in_array(
+//            needle: $scope,
+//            haystack: [ScopeInterface::SCOPE_STORE, ScopeInterface::SCOPE_STORES],
+//            strict: true,
+//        );
+//    }
 }
