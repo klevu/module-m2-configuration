@@ -16,7 +16,6 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
-use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -209,6 +208,9 @@ class StoreScopeProviderTest extends TestCase
             value: 1,
         );
 
+        $storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $defaultStore = $storeManager->getDefaultStoreView();
+
         $mockRequest = $this->getMockBuilder(RequestInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -220,7 +222,7 @@ class StoreScopeProviderTest extends TestCase
         ]);
         $currentStore = $storeScopeProvider->getCurrentStore();
 
-        $this->assertSame(Store::DEFAULT_STORE_ID, (int)$currentStore->getId());
+        $this->assertSame((int)$defaultStore->getId(), (int)$currentStore->getId());
     }
 
     /**

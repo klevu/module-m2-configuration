@@ -12,14 +12,13 @@ use Klevu\Configuration\Service\GetBearerTokenInterface;
 use Klevu\Configuration\Service\GetBearerTokenService;
 use Klevu\TestFixtures\User\UserFixturesPool;
 use Klevu\TestFixtures\User\UserTrait;
-use Magento\Backend\Model\Auth\Session as AdminSession;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\User\Model\Authorization\AdminSessionUserContext;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Klevu\Configuration\Service\GetBearerTokenService
+ * @magentoAppArea adminhtml
  */
 class GetBearerTokenTest extends TestCase
 {
@@ -41,6 +40,7 @@ class GetBearerTokenTest extends TestCase
 
     /**
      * @return void
+     * @throws \Exception
      */
     protected function tearDown(): void
     {
@@ -64,27 +64,10 @@ class GetBearerTokenTest extends TestCase
     public function testExecute_ReturnsToken_ForAdminUser(): void
     {
         $this->createUser();
-        $user = $this->userFixturesPool->get('test_user');
+        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->loginUser(user: $userFixture->get());
 
-        $mockAdminSessionBuilder = $this->getMockBuilder(AdminSession::class);
-        $mockAdminSessionBuilder->addMethods(['getUser', 'hasUser']);
-        $mockAdminSession = $mockAdminSessionBuilder->disableOriginalConstructor()
-            ->getMock();
-        $mockAdminSession->method('hasUser')
-            ->willReturn(true);
-        $mockAdminSession->method('getUser')
-            ->willReturn($user->get());
-
-        $userContext = $this->objectManager->create(
-            type: AdminSessionUserContext::class,
-            arguments: [
-                'adminSession' => $mockAdminSession,
-            ],
-        );
-
-        $getBearerToken = $this->InstantiateBearerTokenService(arguments: [
-            'userContext' => $userContext,
-        ]);
+        $getBearerToken = $this->InstantiateBearerTokenService();
         $bearerToken = $getBearerToken->execute();
 
         $this->assertNotSame('', $bearerToken);

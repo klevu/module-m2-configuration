@@ -18,6 +18,7 @@ interface IntegrateApiKeysInterface
      * @param string $authKey
      * @param int $scopeId
      * @param string|null $scopeType
+     * @param int|null $loggerScopeId
      *
      * @return \Klevu\Configuration\Api\Data\ApiResponseInterface
      */
@@ -26,5 +27,6 @@ interface IntegrateApiKeysInterface
         string $authKey,
         int $scopeId,
         ?string $scopeType = ScopeInterface::SCOPE_STORES,
+        ?int $loggerScopeId = null,
     ): ApiResponseInterface;
 }

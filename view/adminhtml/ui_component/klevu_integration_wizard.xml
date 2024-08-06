@@ -116,6 +116,14 @@
                 </imports>
             </settings>
         </field>
+        <field name="logger_scope_id" formElement="hidden" sortOrder="60">
+            <settings>
+                <elementTmpl>ui/form/element/hidden</elementTmpl>
+                <imports>
+                    <link name="value">${ $.provider }:data.logger_scope_id</link>
+                </imports>
+            </settings>
+        </field>
         <button name="check_api_keys">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

@@ -27,7 +27,7 @@ class ArticleListTest extends TestCase
     /**
      * @var ObjectManagerInterface
      */
-    private ObjectManagerInterface $objectManager; // @phpstan-ignore-line
+    private ?ObjectManagerInterface $objectManager = null; // @phpstan-ignore-line
 
     /**
      * @return void

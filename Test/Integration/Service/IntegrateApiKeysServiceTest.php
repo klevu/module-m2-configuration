@@ -392,7 +392,7 @@ class IntegrateApiKeysServiceTest extends TestCase
         // @TODO add when channels are available
         $this->markTestSkipped('Skipped until channels are available');
         /** @var ConfigWriter $configWriter */
-        $configWriter = $this->objectManager->get(ConfigWriter::class);
+        $configWriter = $this->objectManager->get(ConfigWriter::class); // @phpstan-ignore-line - see @todo
 
         $this->createStore();
         $store = $this->storeFixturesPool->get(key: 'test_store');

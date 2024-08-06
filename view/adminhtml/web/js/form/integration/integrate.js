@@ -58,7 +58,8 @@ define([
                 apiKey: self.source.js_api_key,
                 authKey: self.source.rest_auth_key,
                 scopeId: self.source.scope_id,
-                scopeType: self.source.scope
+                scopeType: self.source.scope,
+                loggerScopeId: self.source.logger_scope_id // required to log to correct store name in SSM
             };
             const headers = {
                 'Content-type': 'application/json',

@@ -15,7 +15,6 @@ use Magento\Framework\Config\ScopeInterface as ConfigScopeInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
-use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
 class StoreScopeProvider implements StoreScopeProviderInterface
@@ -159,6 +158,10 @@ class StoreScopeProvider implements StoreScopeProviderInterface
      */
     private function resolveCurrentAdminhtmlStore(): ?StoreInterface
     {
+        if ($this->storeManager->isSingleStoreMode()) {
+            return $this->storeManager->getDefaultStoreView();
+        }
+
         $storeId = $this->getStoreIdFromRequestParams();
         if (null === $storeId) {
             return null;
@@ -173,7 +176,9 @@ class StoreScopeProvider implements StoreScopeProviderInterface
     private function getStoreIdFromRequestParams(): ?int
     {
         if ($this->storeManager->isSingleStoreMode()) {
-            return Store::DEFAULT_STORE_ID;
+            $defaultStore = $this->storeManager->getDefaultStoreView();
+
+            return $defaultStore->getId();
         }
         $paramKeys = array_unique([
             'store',

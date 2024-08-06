@@ -17,6 +17,7 @@ interface CheckApiKeysInterface
      * @param string $authKey
      * @param int|null $scopeId
      * @param string|null $scopeType
+     * @param int|null $loggerScopeId
      *
      * @return \Klevu\Configuration\Api\Data\ApiResponseInterface
      */
@@ -25,5 +26,6 @@ interface CheckApiKeysInterface
         string $authKey,
         ?int $scopeId,
         ?string $scopeType,
+        ?int $loggerScopeId = null,
     ): ApiResponseInterface;
 }
