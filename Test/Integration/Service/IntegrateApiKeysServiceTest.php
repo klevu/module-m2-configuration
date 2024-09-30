@@ -14,6 +14,9 @@ use Klevu\Configuration\Service\IntegrateApiKeysService;
 use Klevu\Configuration\Service\IntegrateApiKeysServiceInterface;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
 use Klevu\Configuration\Service\Provider\AuthKeyProvider;
+use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
+use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProvider;
+use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProviderInterface;
 use Klevu\PhpSDK\Api\Model\AccountInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface;
 use Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory;
@@ -25,6 +28,7 @@ use Klevu\PhpSDK\Model\Account\AccountFeaturesFactory;
 use Klevu\PhpSDK\Model\AccountFactory;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
+use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\Writer as ConfigWriter;
 use Magento\Framework\Event\ManagerInterface;
@@ -39,6 +43,7 @@ use PHPUnit\Framework\TestCase;
  */
 class IntegrateApiKeysServiceTest extends TestCase
 {
+    use SetAuthKeysTrait;
     use StoreTrait;
 
     /**
@@ -227,7 +232,15 @@ class IntegrateApiKeysServiceTest extends TestCase
         $configWriter = $this->objectManager->get(ConfigWriter::class);
 
         $this->createStore();
-        $store = $this->storeFixturesPool->get(key: 'test_store');
+        $storeFixture = $this->storeFixturesPool->get(key: 'test_store');
+        $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
+        $scopeProvider->setCurrentScope($storeFixture->get());
+        $this->setOldAuthKeys(
+            scopeProvider: $scopeProvider,
+            jsApiKey: 'klevu_js_api_key_1',
+            restAuthKey: 'klevu_rest_auth_key_1',
+        );
+
         $paths = [
             ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => null,
             AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY => null,
@@ -247,12 +260,12 @@ class IntegrateApiKeysServiceTest extends TestCase
             $configWriter->delete(
                 path: $path,
                 scope: ScopeInterface::SCOPE_WEBSITES,
-                scopeId: $store->getWebsiteId(),
+                scopeId: $storeFixture->getWebsiteId(),
             );
             $configWriter->delete(
                 path: $path,
                 scope: ScopeInterface::SCOPE_STORES,
-                scopeId: $store->getId(),
+                scopeId: $storeFixture->getId(),
             );
         }
 
@@ -262,7 +275,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             $actualValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_WEBSITES,
-                $store->getWebsiteId(),
+                $storeFixture->getWebsiteId(),
             );
             $this->assertSame(expected: $expectedValue, actual: $actualValue);
         }
@@ -282,6 +295,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             'searchUrl' => 'search.url',
             'smartCategoryMerchandisingUrl' => 'catnav.url',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ];
         $mockAccount = $this->createAccount(accountData: $accountData);
         $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)
@@ -346,7 +360,7 @@ class IntegrateApiKeysServiceTest extends TestCase
         $account = $service->execute(
             apiKey: $jsApiKey,
             authKey: $restAuthKey,
-            scopeId: $store->getId(),
+            scopeId: $storeFixture->getId(),
         );
         // returned data
         $this->assertSame(expected: $jsApiKey, actual: $account->getJsApiKey());
@@ -377,10 +391,19 @@ class IntegrateApiKeysServiceTest extends TestCase
             $actualValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_STORES,
-                $store->getId(),
+                $storeFixture->getId(),
             );
             $this->assertSame(expected: $value, actual: $actualValue);
         }
+
+        $authKeysProvider = $this->objectManager->get(OldAuthKeysCollectionProviderInterface::class);
+        $oldAuthKeys = $authKeysProvider->get(
+            filter: [
+                OldAuthKeysCollectionProvider::FILTER_SCOPE => ScopeInterface::SCOPE_STORES,
+                OldAuthKeysCollectionProvider::FILTER_SCOPE_ID => $storeFixture->getId(),
+            ],
+        );
+        $this->assertCount(expectedCount: 0, haystack: $oldAuthKeys);
     }
 
     /**
@@ -395,7 +418,7 @@ class IntegrateApiKeysServiceTest extends TestCase
         $configWriter = $this->objectManager->get(ConfigWriter::class); // @phpstan-ignore-line - see @todo
 
         $this->createStore();
-        $store = $this->storeFixturesPool->get(key: 'test_store');
+        $storeFixture = $this->storeFixturesPool->get(key: 'test_store');
 
         $scopeConfig = $this->objectManager->get(ScopeConfigInterface::class);
         $paths = [
@@ -417,19 +440,19 @@ class IntegrateApiKeysServiceTest extends TestCase
             $configWriter->delete(
                 path: $path,
                 scope: ScopeInterface::SCOPE_WEBSITES,
-                scopeId: $store->getWebsiteId(),
+                scopeId: $storeFixture->getWebsiteId(),
             );
             $configWriter->delete(
                 path: $path,
                 scope: ScopeInterface::SCOPE_STORES,
-                scopeId: $store->getId(),
+                scopeId: $storeFixture->getId(),
             );
         }
         foreach ($paths as $path => $value) {
             $configJsApiKey = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_WEBSITES,
-                $store->getWebsiteId(),
+                $storeFixture->getWebsiteId(),
             );
             $this->assertSame(expected: $value, actual: $configJsApiKey);
         }
@@ -449,6 +472,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             'searchUrl' => 'search.url',
             'smartCategoryMerchandisingUrl' => 'catnav.url',
             'tiersUrl' => 'tiers.url',
+            'indexingVersion' => '3',
         ];
         $mockAccount = $this->createAccount(accountData: $accountData);
         $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)
@@ -501,7 +525,7 @@ class IntegrateApiKeysServiceTest extends TestCase
         $account = $service->execute(
             apiKey: $jsApiKey,
             authKey: $restAuthKey,
-            scopeId: $store->getWebsiteId(),
+            scopeId: $storeFixture->getWebsiteId(),
             scopeType: ScopeInterface::SCOPE_WEBSITES,
         );
         // returned data
@@ -520,7 +544,7 @@ class IntegrateApiKeysServiceTest extends TestCase
         $this->assertTrue(condition: $accountFeatures->preserveLayout, message: 'Preserve Layout');
 
         $accountProvider = $this->objectManager->get(CachedAccountProvider::class);
-        $cachedAccountFeatures = $accountProvider->get(scopeId: $store->getId());
+        $cachedAccountFeatures = $accountProvider->get(scopeId: $storeFixture->getId());
         // cached data
         $this->assertFalse(
             condition: $cachedAccountFeatures->smartCategoryMerchandising,
@@ -549,7 +573,7 @@ class IntegrateApiKeysServiceTest extends TestCase
             $configValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_STORES,
-                $store->getId(),
+                $storeFixture->getId(),
             );
             $this->assertSame(expected: $value, actual: $configValue);
         }

@@ -230,6 +230,7 @@ class CheckApiKeys implements CheckApiKeysInterface
                     'platform' => ucwords($account->getPlatform()),
                     'apiKey' => $account->getJsApiKey(),
                     'authKey' => $account->getRestAuthKey(),
+                    'indexingVersion' => $account->getIndexingVersion(),
                 ],
             ],
             'messages' => [

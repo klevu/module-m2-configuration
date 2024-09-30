@@ -208,6 +208,7 @@ class AccountLookupActionTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -256,6 +257,57 @@ class AccountLookupActionTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
+        ]);
+
+        $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
+        $accountCredentials = $accountCredentialsFactory->create(
+            data: [
+                'jsApiKey' => $jsApiKey,
+                'restAuthKey' => $restAuthKey,
+            ],
+        );
+
+        $mockAccountLookupService = $this->getMockBuilder(AccountLookupServiceInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountLookupService->expects($this->once())
+            ->method('execute')
+            ->with($accountCredentials)
+            ->willReturn($mockAccount);
+
+        $accountLookupAction = $this->instantiateAccountLookupAction(arguments: [
+            'accountLookupService' => $mockAccountLookupService,
+        ]);
+        $accountLookupAction->execute(accountCredentials: $accountCredentials);
+    }
+
+    public function testExecute_ThrowsException_WhenIndexingVersionIsInvalid(): void
+    {
+        $this->expectException(InactiveAccountException::class);
+        $this->expectExceptionMessage(
+            'Account can not be integrated as it used XML indexing. JSON indexing is required. '
+            . 'Please contact support to upgrade your account https://help.klevu.com/',
+        );
+
+        $jsApiKey = 'klevu-1234567890';
+        $restAuthKey = $this->generateAuthKey(length: 10);
+
+        $accountFactory = new AccountFactory();
+        $mockAccount = $accountFactory->create(data: [
+            'jsApiKey' => $jsApiKey,
+            'restAuthKey' => $restAuthKey,
+            'platform' => 'magento',
+            'active' => true,
+            'companyName' => 'Klevu',
+            'email' => 'user@klevu.com',
+            'analyticsUrl' => 'stats.ksearchnet.com',
+            'indexingUrl' => 'indexing.ksearchnet.com',
+            'jsUrl' => 'js.klevu.com',
+            'searchUrl' => 'search.klevu.com',
+            'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
+            'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '2',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -344,6 +396,7 @@ class AccountLookupActionTest extends TestCase
             message: 'Smart Category Merchandising URL',
         );
         $this->assertNotNull(actual: $account->getTiersUrl(), message: 'Tiers URL');
+        $this->assertSame(expected: '3', actual: $account->getIndexingVersion());
     }
 
     public function testExecute_ReturnsAccountDetails_ForMockApi(): void
@@ -365,6 +418,7 @@ class AccountLookupActionTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -400,6 +454,66 @@ class AccountLookupActionTest extends TestCase
         $this->assertSame(expected: 'search.klevu.com', actual: $account->getSearchUrl());
         $this->assertSame(expected: 'catnav.klevu.com', actual: $account->getSmartCategoryMerchandisingUrl());
         $this->assertSame(expected: 'tiers.klevu.com', actual: $account->getTiersUrl());
+        $this->assertSame(expected: '3', actual: $account->getIndexingVersion());
+    }
+
+    public function testExecute_ReturnsAccountDetails_ForMockApi_IndexingVersionNotSet(): void
+    {
+        $jsApiKey = 'klevu-1234567890';
+        $restAuthKey = $this->generateAuthKey(length: 10);
+
+        $accountFactory = new AccountFactory();
+        $mockAccount = $accountFactory->create(data: [
+            'jsApiKey' => $jsApiKey,
+            'restAuthKey' => $restAuthKey,
+            'platform' => 'magento',
+            'active' => true,
+            'companyName' => 'Klevu',
+            'email' => 'user@klevu.com',
+            'analyticsUrl' => 'stats.ksearchnet.com',
+            'indexingUrl' => 'indexing.ksearchnet.com',
+            'jsUrl' => 'js.klevu.com',
+            'searchUrl' => 'search.klevu.com',
+            'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
+            'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => null,
+            'defaultCurrency' => null,
+        ]);
+
+        $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
+        $accountCredentials = $accountCredentialsFactory->create(
+            data: [
+                'jsApiKey' => $jsApiKey,
+                'restAuthKey' => $restAuthKey,
+            ],
+        );
+
+        $mockAccountLookupService = $this->getMockBuilder(AccountLookupServiceInterface::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockAccountLookupService->expects($this->once())
+            ->method('execute')
+            ->with($accountCredentials)
+            ->willReturn($mockAccount);
+
+        $accountLookupAction = $this->instantiateAccountLookupAction(arguments: [
+            'accountLookupService' => $mockAccountLookupService,
+        ]);
+        $account = $accountLookupAction->execute(accountCredentials: $accountCredentials);
+
+        $this->assertTrue(condition: $account->isActive(), message: "Is Active");
+        $this->assertSame(expected: 'magento', actual: strtolower($account->getPlatform()));
+        $this->assertSame(expected: $jsApiKey, actual: $account->getJsApiKey());
+        $this->assertSame(expected: $restAuthKey, actual: $account->getRestAuthKey());
+        $this->assertSame(expected: 'Klevu', actual: $account->getCompanyName());
+        $this->assertSame(expected: 'user@klevu.com', actual: $account->getEmail());
+        $this->assertSame(expected: 'stats.ksearchnet.com', actual: $account->getAnalyticsUrl());
+        $this->assertSame(expected: 'indexing.ksearchnet.com', actual: $account->getIndexingUrl());
+        $this->assertSame(expected: 'js.klevu.com', actual: $account->getJsUrl());
+        $this->assertSame(expected: 'search.klevu.com', actual: $account->getSearchUrl());
+        $this->assertSame(expected: 'catnav.klevu.com', actual: $account->getSmartCategoryMerchandisingUrl());
+        $this->assertSame(expected: 'tiers.klevu.com', actual: $account->getTiersUrl());
+        $this->assertSame(expected: '', actual: $account->getIndexingVersion());
     }
 
     /**

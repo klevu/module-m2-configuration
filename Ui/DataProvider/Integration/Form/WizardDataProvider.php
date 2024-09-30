@@ -9,9 +9,13 @@ declare(strict_types=1);
 namespace Klevu\Configuration\Ui\DataProvider\Integration\Form;
 
 use Klevu\Configuration\Service\GetBearerTokenInterface;
+use Klevu\Configuration\Service\Provider\AuthKeyProvider;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider;
 use Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface;
+use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProvider;
+use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProviderInterface;
 use Klevu\Configuration\Validator\ValidatorInterface;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigCollection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\ValueInterface;
 use Magento\Framework\App\RequestInterface;
@@ -25,14 +29,18 @@ use Psr\Log\LoggerInterface;
 
 class WizardDataProvider extends AbstractDataProvider
 {
-    public const CONFIG_XML_PATH_KLEVU_AUTH_KEYS = 'klevu_configuration/auth_keys';
     private const PARAM_LOGGER_SCOPE_ID = 'logger_scope_id';
     private const PARAM_SCOPE_ID = 'scope_id';
     private const PARAM_SCOPE = 'scope';
     private const PARAM_DISPLAY_SCOPE = 'display_scope';
     private const BEARER = 'bearer';
     private const MULTI_STORE_MODE = 'multi_store_mode';
+    private const MESSAGES = 'messages';
 
+    /**
+     * @var OldAuthKeysCollectionProviderInterface
+     */
+    private readonly OldAuthKeysCollectionProviderInterface $oldAuthKeysCollectionProvider;
     /**
      * @var RequestInterface
      */
@@ -67,6 +75,7 @@ class WizardDataProvider extends AbstractDataProvider
      * @param string $primaryFieldName
      * @param string $requestFieldName
      * @param AuthKeysCollectionProviderInterface $authKeysCollectionProvider
+     * @param OldAuthKeysCollectionProviderInterface $oldAuthKeysCollectionProvider
      * @param RequestInterface $request
      * @param StoreManagerInterface $storeManager
      * @param LoggerInterface $logger
@@ -81,6 +90,7 @@ class WizardDataProvider extends AbstractDataProvider
         string $primaryFieldName,
         string $requestFieldName,
         AuthKeysCollectionProviderInterface $authKeysCollectionProvider,
+        OldAuthKeysCollectionProviderInterface $oldAuthKeysCollectionProvider,
         RequestInterface $request,
         StoreManagerInterface $storeManager,
         LoggerInterface $logger,
@@ -97,12 +107,13 @@ class WizardDataProvider extends AbstractDataProvider
         $this->scopeIdValidator = $scopeIdValidator;
         $this->scopeTypeValidator = $scopeTypeValidator;
         $this->collection = $authKeysCollectionProvider->get(
-            $this->getFilter(),
+            filter: $this->getFilter(),
         );
 
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
 
         $this->prepareUpdateUrl();
+        $this->oldAuthKeysCollectionProvider = $oldAuthKeysCollectionProvider;
     }
 
     /**
@@ -120,24 +131,43 @@ class WizardDataProvider extends AbstractDataProvider
                 'items' => [],
             ];
         }
-        /** @var ValueInterface[] $items */
-        $items = array_filter(
-            array: $this->collection->getItems(),
-            callback: function (ValueInterface | DataObject $item) use ($scopeId): bool {
-                return $item->getScope() === $this->currentScope
-                    && (int)$item->getScopeId() === $scopeId;
-            },
-        );
+        $items = $this->getApiKeys(scopeId: $scopeId);
+        $oldItems = [];
+        if (!$items) {
+            $oldItems = $this->getOldApiKeys(scopeId: $scopeId);
+        }
+
         $return = [];
+        $return[$scopeId][self::MESSAGES] = [];
         foreach ($items as $item) {
             $key = str_replace(
-                search: static::CONFIG_XML_PATH_KLEVU_AUTH_KEYS . '/',
+                search: AuthKeysCollectionProvider::CONFIG_XML_PATH_KLEVU_AUTH_KEYS . '/',
                 replace: '',
                 // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getPath()
                 subject: $item->getPath(),
             );
             // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getValue()
             $return[$scopeId][$key] = $item->getValue();
+        }
+        foreach ($oldItems as $item) {
+            $key = str_replace(
+                search: OldAuthKeysCollectionProvider::CONFIG_XML_PATH_KLEVU_AUTH_KEYS . '/',
+                replace: '',
+                // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getPath()
+                subject: $item->getPath(),
+            );
+            if ($key === OldAuthKeysCollectionProvider::XML_FIELD_REST_API_KEY) {
+                $key = AuthKeyProvider::XML_FIELD_REST_AUTH_KEY;
+            }
+            // @see docBlock in \Magento\Framework\App\Config\Value for method definition of getValue()
+            $return[$scopeId][$key] = $item->getValue();
+
+            $return[$scopeId][self::MESSAGES] = [
+                __('This store is not currently integrated.'),
+                __(
+                    'The form is pre-populated with Auth Keys used in a previous integration for this store.',
+                ),
+            ];
         }
         $return[$scopeId][self::PARAM_LOGGER_SCOPE_ID] = $this->getLoggerScopeId();
         $return[$scopeId][self::PARAM_SCOPE_ID] = $scopeId;
@@ -288,5 +318,42 @@ class WizardDataProvider extends AbstractDataProvider
         );
 
         return false;
+    }
+
+    /**
+     * @param int $scopeId
+     *
+     * @return array<ValueInterface|DataObject>
+     */
+    private function getApiKeys(int $scopeId): array
+    {
+        return array_filter(
+            array: $this->collection->getItems(),
+            callback: fn (ValueInterface | DataObject $item): bool => (
+                $item->getScope() === $this->currentScope
+                    && (int)$item->getScopeId() === $scopeId
+            ),
+        );
+    }
+
+    /**
+     * @param int $scopeId
+     *
+     * @return array<ValueInterface|DataObject>
+     */
+    private function getOldApiKeys(int $scopeId): array
+    {
+        /** @var ConfigCollection $oldAuthKeysCollection */
+        $oldAuthKeysCollection = $this->oldAuthKeysCollectionProvider->get(
+            filter: $this->getFilter(),
+        );
+
+        return array_filter(
+            array: $oldAuthKeysCollection->getItems(),
+            callback: fn (ValueInterface | DataObject $item): bool => (
+                $item->getScope() === $this->currentScope
+                    && (int)$item->getScopeId() === $scopeId
+            ),
+        );
     }
 }

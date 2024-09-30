@@ -8,10 +8,12 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\Test\Integration\Ui\DataProvider\Integration\Form;
 
+use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\Configuration\Ui\DataProvider\Integration\Form\WizardDataProvider;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
+use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
 use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
 use Klevu\TestFixtures\User\UserFixturesPool;
 use Klevu\TestFixtures\User\UserTrait;
@@ -36,6 +38,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 class WizardDataProviderTest extends TestCase
 {
     use ObjectInstantiationTrait;
+    use SetAuthKeysTrait;
     use StoreTrait;
     use TestImplementsInterfaceTrait;
     use UserTrait;
@@ -182,6 +185,114 @@ class WizardDataProviderTest extends TestCase
             expected: (int)$storeFixture->getId(),
             actual: $result['scope_id'],
             message: 'scope_id',
+        );
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     */
+    public function testGetData_ContainsCurrentApiKeysWhenPresent(): void
+    {
+        $this->createStore();
+        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
+        $scopeProvider->setCurrentScope($storeFixture->get());
+
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider,
+            jsApiKey: 'klevu_js_api_key',
+            restAuthKey: 'klevu_rest_auth_key',
+        );
+
+        $this->createUser();
+        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->loginUser(user: $userFixture->get());
+
+        /** @var RequestInterface $request */
+        $request = $this->objectManager->get(RequestInterface::class);
+        $request->setParams([
+            'scope' => ScopeInterface::SCOPE_STORES,
+            'scope_id' => (int)$storeFixture->getId(),
+        ]);
+
+        $provider = $this->instantiateTestObject();
+        $results = $provider->getData();
+        $this->assertIsArray($results);
+        $result = array_shift($results);
+
+        $this->assertArrayHasKey(key: 'js_api_key', array: $result);
+        $this->assertSame(
+            expected: 'klevu_js_api_key',
+            actual: $result['js_api_key'],
+            message: 'js_api_key',
+        );
+        $this->assertArrayHasKey(key: 'js_api_key', array: $result);
+        $this->assertSame(
+            expected: 'klevu_rest_auth_key',
+            actual: $result['rest_auth_key'],
+            message: 'rest_auth_key',
+        );
+        $this->assertArrayHasKey(key: 'messages', array: $result);
+        $this->assertEmpty(
+            actual: $result['messages'],
+            message: 'messages',
+        );
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     */
+    public function testGetData_ContainsPreviousApiKeysWhenPresent(): void
+    {
+        $this->createStore();
+        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
+        $scopeProvider->setCurrentScope($storeFixture->get());
+
+        $this->setOldAuthKeys(
+            scopeProvider: $scopeProvider,
+            jsApiKey: 'klevu_js_api_key',
+            restAuthKey: 'klevu_rest_auth_key',
+        );
+
+        $this->createUser();
+        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->loginUser(user: $userFixture->get());
+
+        /** @var RequestInterface $request */
+        $request = $this->objectManager->get(RequestInterface::class);
+        $request->setParams([
+            'scope' => ScopeInterface::SCOPE_STORES,
+            'scope_id' => (int)$storeFixture->getId(),
+        ]);
+
+        $provider = $this->instantiateTestObject();
+        $results = $provider->getData();
+        $this->assertIsArray($results);
+        $result = array_shift($results);
+
+        $this->assertArrayHasKey(key: 'js_api_key', array: $result);
+        $this->assertSame(
+            expected: 'klevu_js_api_key',
+            actual: $result['js_api_key'],
+            message: 'js_api_key',
+        );
+        $this->assertArrayHasKey(key: 'js_api_key', array: $result);
+        $this->assertSame(
+            expected: 'klevu_rest_auth_key',
+            actual: $result['rest_auth_key'],
+            message: 'rest_auth_key',
+        );
+        $this->assertArrayHasKey(key: 'messages', array: $result);
+        $this->assertEquals(
+            expected: [
+                __('This store is not currently integrated.'),
+                __(
+                    'The form is pre-populated with Auth Keys used in a previous integration for this store.',
+                ),
+            ],
+            actual: $result['messages'],
+            message: 'messages',
         );
     }
 }

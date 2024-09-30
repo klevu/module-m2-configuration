@@ -19,6 +19,7 @@ use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Api\WebsiteRepositoryInterface;
 use Magento\Store\Model\Store;
 use Magento\TestFramework\ObjectManager;
 // phpcs:ignore SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces.NonFullyQualified
@@ -343,13 +344,13 @@ class LogIfConfiguredTest extends TestCase
         $record = $this->getRecord();
 
         $this->createWebsite();
-        $website = $this->websiteFixturesPool->get('test_website');
+        $websiteFixture = $this->websiteFixturesPool->get('test_website');
         $this->createStore([
-            'website_id' => $website->getId(),
+            'website_id' => $websiteFixture->getId(),
             'key' => 'test_store_1',
         ]);
         $this->createStore([
-            'website_id' => $website->getId(),
+            'website_id' => $websiteFixture->getId(),
             'code' => 'klevu_test_store_2',
             'key' => 'test_store_2',
         ]);
@@ -361,8 +362,10 @@ class LogIfConfiguredTest extends TestCase
             $this->createStoreLogsDirectory(null, $store->getCode());
         }
 
+        $websiteRepository = $this->objectManager->get(WebsiteRepositoryInterface::class);
+        $website = $websiteRepository->get($websiteFixture->getCode());
         $scopeProvider = $this->objectManager->get(ScopeProvider::class);
-        $scopeProvider->setCurrentScope($website->get());
+        $scopeProvider->setCurrentScope($website);
         $logIfConfigured = $this->instantiateHandlerLogIfConfigured();
         $logIfConfigured->write($record);
 
@@ -372,7 +375,10 @@ class LogIfConfiguredTest extends TestCase
             $directory = $this->getStoreLogsDirectoryPath(null, $store->getCode());
             $fileName = $directory . DIRECTORY_SEPARATOR . 'klevu-' . $store->getCode() . '-configuration.log';
 
-            $this->assertTrue($fileIo->fileExists($fileName));
+            $this->assertTrue(
+                condition: $fileIo->fileExists($fileName),
+                message: sprintf('File exists %s', $fileName),
+            );
             $fileContents = $fileIo->read($fileName);
 
             $this->assertStringContainsString(

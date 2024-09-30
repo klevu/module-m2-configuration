@@ -17,11 +17,13 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 
-class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
+class OldAuthKeysCollectionProvider implements OldAuthKeysCollectionProviderInterface
 {
-    public const CONFIG_XML_PATH_KLEVU_AUTH_KEYS = 'klevu_configuration/auth_keys';
+    public const CONFIG_XML_PATH_KLEVU_AUTH_KEYS = 'klevu_search/general';
     public const FILTER_SCOPE = 'scope';
     public const FILTER_SCOPE_ID = 'scope_id';
+    public const XML_FIELD_REST_API_KEY = 'rest_api_key';
+    public const XML_FIELD_JS_API_KEY = 'js_api_key';
 
     /**
      * @var ConfigCollectionFactory
@@ -68,25 +70,6 @@ class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
     }
 
     /**
-     * @param bool $load
-     *
-     * @return ConfigCollection
-     */
-    public function getAll(bool $load = true): ConfigCollection
-    {
-        /** @var ConfigCollection $configCollection */
-        $configCollection = $this->configCollectionFactory->create();
-        $this->removeSelect(collection: $configCollection);
-        $this->filterByPath(collection: $configCollection);
-        $this->filterByScopeType(collection: $configCollection);
-        if ($load && !$configCollection->isLoaded()) {
-            $configCollection->load();
-        }
-
-        return $configCollection;
-    }
-
-    /**
      * @param string[] $filter ['scope' => 'Some scope', 'scope_id' => 'some id']
      * @param bool $load
      *
@@ -95,11 +78,11 @@ class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
      */
     public function get(array $filter = [], bool $load = true): ConfigCollection
     {
-        /** @var ConfigCollection $configCollection */
         $configCollection = $this->configCollectionFactory->create();
         $this->removeSelect(collection: $configCollection);
         $this->filterByPath(collection: $configCollection);
         $this->filterByScope(collection: $configCollection, filter: $filter);
+
         if ($load && !$configCollection->isLoaded()) {
             $configCollection->load();
         }
@@ -131,28 +114,23 @@ class AuthKeysCollectionProvider implements AuthKeysCollectionProviderInterface
     }
 
     /**
-     * @param ConfigCollection $collection
      *
-     * @return void
-     */
-    private function filterByScopeType(ConfigCollection $collection): void
-    {
-        $scope = $this->isSingleStoreMode
-            ? [ScopeConfigInterface::SCOPE_TYPE_DEFAULT]
-            : $this->validScopes;
-
-        $collection->addFieldToFilter('scope', ['in' => $scope]);
-    }
-
-    /**
      * @param ConfigCollection $collection
      * @param mixed[] $filter
      *
      * @return void
      * @throws \InvalidArgumentException
      */
-    private function filterByScope(ConfigCollection $collection, array $filter): void
+    private function filterByScope(ConfigCollection $collection, array $filter = []): void
     {
+        if (!$filter) {
+            $scope = $this->isSingleStoreMode
+                ? [ScopeConfigInterface::SCOPE_TYPE_DEFAULT]
+                : $this->validScopes;
+
+            $collection->addFieldToFilter('scope', ['in' => $scope]);
+            return;
+        }
         if ($this->isSingleStoreMode) {
             $filter[static::FILTER_SCOPE] = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
             $filter[static::FILTER_SCOPE_ID] = Store::DEFAULT_STORE_ID;

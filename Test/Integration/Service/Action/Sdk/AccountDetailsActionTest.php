@@ -177,6 +177,7 @@ class AccountDetailsActionTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ];
         $mockAccount = $this->createAccount(accountData: $accountData);
         $mockAccountLookup = $this->getMockBuilder(AccountLookupServiceInterface::class)

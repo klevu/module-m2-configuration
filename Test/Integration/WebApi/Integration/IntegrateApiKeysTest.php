@@ -22,6 +22,7 @@ use Klevu\PhpSDK\Model\AccountCredentialsFactory;
 use Klevu\PhpSDK\Model\AccountFactory;
 use Klevu\PhpSDK\Service\Account\AccountFeaturesService;
 use Klevu\PhpSDK\Service\Account\AccountLookupService;
+use Klevu\TestFixtures\Traits\AttributeApiCallTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -34,6 +35,8 @@ use Psr\Log\LoggerInterface;
  */
 class IntegrateApiKeysTest extends TestCase
 {
+    use AttributeApiCallTrait;
+
     /**
      * @var ObjectManagerInterface|null
      */
@@ -546,6 +549,8 @@ class IntegrateApiKeysTest extends TestCase
      */
     public function testExecute_ReturnsExpectedData(): void
     {
+        $this->mockSdkAttributeGetApiCall();
+
         $jsApiKey = 'klevu-1234567890';
         $restAuthKey = $this->generateAuthKey(length: 10);
 
@@ -570,6 +575,7 @@ class IntegrateApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
         $mockSdkAccountLookupService = $this->getMockBuilder(AccountLookupService::class)
             ->disableOriginalConstructor()

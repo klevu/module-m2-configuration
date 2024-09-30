@@ -215,6 +215,12 @@
                 </imports>
             </settings>
         </field>
+        <field name="indexing_version" formElement="input" sortOrder="80">
+            <settings>
+                <elementTmpl>ui/form/element/text</elementTmpl>
+                <label translate="true">Indexing Version</label>
+            </settings>
+        </field>
         <button name="confirm_integration">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">

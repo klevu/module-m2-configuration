@@ -37,6 +37,9 @@
     <preference for="Klevu\Configuration\Service\Action\RemoveEndpointsInterface"
                 type="Klevu\Configuration\Service\Action\RemoveEndpoints"/>
 
+    <preference for="Klevu\Configuration\Service\Action\RemoveOldApiKeysActionInterface"
+                type="Klevu\Configuration\Service\Action\RemoveOldApiKeysAction"/>
+
     <preference for="Klevu\Configuration\Service\Action\UpdateEndpointsInterface"
                 type="Klevu\Configuration\Service\Action\UpdateEndpoints"/>
 
@@ -81,6 +84,9 @@
 
     <preference for="Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProviderInterface"
                 type="Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider"/>
+
+    <preference for="Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProviderInterface"
+                type="Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProvider"/>
 
     <preference for="Klevu\Configuration\Service\Provider\WebsiteScopeProviderInterface"
                 type="Klevu\Configuration\Service\Provider\WebsiteScopeProvider"/>
@@ -180,6 +186,13 @@
         </arguments>
     </type>
 
+    <type name="Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProvider">
+        <arguments>
+            <argument name="scopeIdValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeIdValidator</argument>
+            <argument name="scopeTypeValidator" xsi:type="object">Klevu\Configuration\Validator\ScopeTypeValidator</argument>
+        </arguments>
+    </type>
+
     <type name="Klevu\Configuration\Service\Provider\StoreScopeProvider">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
@@ -272,6 +285,12 @@
         <arguments>
             <argument name="scopeValidator"
                       xsi:type="object">Klevu\Configuration\Validator\ScopeTypeValidator</argument>
+        </arguments>
+    </type>
+
+    <type name="\Klevu\Configuration\Service\Action\RemoveOldApiKeysAction">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
         </arguments>
     </type>
 </config>

@@ -33,8 +33,7 @@ define([
         initialize: function () {
             const self = this;
 
-            self._super()
-                .clearMessages();
+            self._super();
 
             return self;
         },

@@ -29,15 +29,16 @@ trait MigrateLegacyConfigurationSettingsTrait
     /**
      * @param string $fromPath
      * @param string $toPath
+     * @param mixed[]|null $mapValues
      *
      * @return void
-     * @throws \LogicException
      */
     private function renameConfigValue(
         string $fromPath,
         string $toPath,
+        ?array $mapValues = [],
     ): void {
-        if (!$this->configWriter) {
+        if (!$this->configWriter) { // @phpstan-ignore-line
             throw new \LogicException(message: 'Cannot rename config value: configWriter not set');
         }
         $legacyConfigSettings = $this->getLegacyConfigSettings(path: $fromPath);
@@ -49,7 +50,7 @@ trait MigrateLegacyConfigurationSettingsTrait
             foreach ($scopeValues as $scopeId => $value) {
                 $this->configWriter->save(
                     path: $toPath,
-                    value: $value,
+                    value: $mapValues[$value] ?? $value,
                     scope: $scope,
                     scopeId: $scopeId,
                 );
@@ -65,10 +66,10 @@ trait MigrateLegacyConfigurationSettingsTrait
      */
     private function getLegacyConfigSettings(string $path): array
     {
-        if (!$this->resourceConnection) {
+        if (!$this->resourceConnection) { // @phpstan-ignore-line
             throw new \LogicException(message: 'Cannot rename config value: resourceConnection not set');
         }
-        if (null === $this->legacyConfigSettings) {
+        if (!($this->legacyConfigSettings[$path] ?? null)) {
             $configTableName = $this->resourceConnection->getTableName(modelEntity: 'core_config_data');
 
             $connection = $this->resourceConnection->getConnection();
@@ -86,6 +87,6 @@ trait MigrateLegacyConfigurationSettingsTrait
             }
         }
 
-        return $this->legacyConfigSettings;
+        return $this->legacyConfigSettings ?? [];
     }
 }
