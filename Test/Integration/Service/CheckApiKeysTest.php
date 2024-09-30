@@ -191,6 +191,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -246,6 +247,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -296,6 +298,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -338,6 +341,7 @@ class CheckApiKeysTest extends TestCase
         $this->assertSame(expected: 'search.klevu.com', actual: $account->getSearchUrl());
         $this->assertSame(expected: 'catnav.klevu.com', actual: $account->getSmartCategoryMerchandisingUrl());
         $this->assertSame(expected: 'tiers.klevu.com', actual: $account->getTiersUrl());
+        $this->assertSame(expected: '3', actual: $account->getIndexingVersion());
     }
 
     /**

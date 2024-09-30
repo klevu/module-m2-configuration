@@ -194,6 +194,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(AccountCredentialsFactory::class);
@@ -261,6 +262,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(AccountCredentialsFactory::class);
@@ -302,6 +304,74 @@ class CheckApiKeysTest extends TestCase
         $this->assertSame(expected: 'error', actual: $response->getStatus());
         $this->assertSame(
             expected: ['Validation Error: Account can not be integrated as it is inactive.'],
+            actual: $response->getMessages(),
+        );
+    }
+
+    public function testExecute_ReturnsError_WhenValidationFails_AccountIndexingVersionInvalid(): void
+    {
+        $jsApiKey = 'klevu-1234567890';
+        $restAuthKey = $this->generateAuthKey(length: 10);
+
+        $accountFactory = new AccountFactory();
+        $mockAccount = $accountFactory->create(data: [
+            'jsApiKey' => $jsApiKey,
+            'restAuthKey' => $restAuthKey,
+            'platform' => 'magento',
+            'active' => true,
+            'companyName' => 'Klevu',
+            'email' => 'user@klevu.com',
+            'analyticsUrl' => 'stats.ksearchnet.com',
+            'indexingUrl' => 'indexing.ksearchnet.com',
+            'jsUrl' => 'js.klevu.com',
+            'searchUrl' => 'search.klevu.com',
+            'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
+            'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '2',
+        ]);
+
+        $accountCredentialsFactory = $this->objectManager->get(AccountCredentialsFactory::class);
+        $accountCredentials = $accountCredentialsFactory->create(
+            data: [
+                'jsApiKey' => $jsApiKey,
+                'restAuthKey' => $restAuthKey,
+            ],
+        );
+
+        $mockSdkAccountLookupService = $this->getMockBuilder(AccountLookupService::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockSdkAccountLookupService->expects($this->once())
+            ->method('execute')
+            ->with($accountCredentials)
+            ->willReturn($mockAccount);
+
+        $accountLookupAction = $this->objectManager->create(type: AccountLookupActionInterface::class, arguments: [
+            'accountLookupService' => $mockSdkAccountLookupService,
+        ]);
+        $checkApiKeysService = $this->objectManager->create(type: CheckApiKeysService::class, arguments: [
+            'accountLookupAction' => $accountLookupAction,
+        ]);
+
+        $this->mockLogger->expects($this->once())->method('error');
+        $this->mockLogger->expects($this->never())->method('info');
+
+        $webApi = $this->instantiateCheckApiKeysWebApi(arguments: [
+            'apiKeysService' => $checkApiKeysService,
+            'logger' => $this->mockLogger,
+        ]);
+        $response = $webApi->execute(
+            apiKey: $jsApiKey,
+            authKey: $restAuthKey,
+        );
+
+        $this->assertSame(expected: 400, actual: $response->getCode());
+        $this->assertSame(expected: 'error', actual: $response->getStatus());
+        $this->assertSame(
+            expected: [
+                'Validation Error: Account can not be integrated as it used XML indexing. JSON indexing is required. '
+                . 'Please contact support to upgrade your account https://help.klevu.com/',
+            ],
             actual: $response->getMessages(),
         );
     }
@@ -449,6 +519,7 @@ class CheckApiKeysTest extends TestCase
             'searchUrl' => 'search.klevu.com',
             'smartCategoryMerchandisingUrl' => 'catnav.klevu.com',
             'tiersUrl' => 'tiers.klevu.com',
+            'indexingVersion' => '3',
         ]);
 
         $accountCredentialsFactory = $this->objectManager->get(AccountCredentialsFactory::class);
@@ -508,6 +579,8 @@ class CheckApiKeysTest extends TestCase
         $this->assertSame(expected: 'Klevu', actual: $account['company']);
         $this->assertArrayHasKey(key: 'email', array: $account);
         $this->assertSame(expected: 'user@klevu.com', actual: $account['email']);
+        $this->assertArrayHasKey(key: 'indexingVersion', array: $account);
+        $this->assertSame(expected: '3', actual: $account['indexingVersion']);
     }
 
     /**

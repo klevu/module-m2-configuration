@@ -74,11 +74,23 @@
                  type="Klevu\Configuration\ViewModel\Config\Information\ArticleList">
         <arguments>
             <argument name="articles" xsi:type="array">
-                <item name="integration" xsi:type="array">
-                    <item name="how-to-integrate" xsi:type="array">
-                        <item name="link" xsi:type="string"><![CDATA[https://help.klevu.com/support/solutions/articles/5000871252-integration-steps-for-magento-2]]></item>
+                <item name="code" xsi:type="array">
+                    <item name="github" xsi:type="array">
+                        <item name="link" xsi:type="string"><![CDATA[https://github.com/klevu/module-m2-search]]></item>
                         <item name="order" xsi:type="number">10</item>
-                        <item name="title" xsi:type="string">How to Integrate Klevu With Magento 2</item>
+                        <item name="title" xsi:type="string">Github</item>
+                    </item>
+                    <item name="packagist" xsi:type="array">
+                        <item name="link" xsi:type="string"><![CDATA[https://packagist.org/packages/klevu/module-m2-search]]></item>
+                        <item name="order" xsi:type="number">20</item>
+                        <item name="title" xsi:type="string">Packagist</item>
+                    </item>
+                </item>
+                <item name="documentation" xsi:type="array">
+                    <item name="dev_docs" xsi:type="array">
+                        <item name="link" xsi:type="string"><![CDATA[https://docs.klevu.com/klevu-magento-v4/]]></item>
+                        <item name="order" xsi:type="number">10</item>
+                        <item name="title" xsi:type="string">Documentation For Klevu Magento Plugin v4.x</item>
                     </item>
                 </item>
             </argument>

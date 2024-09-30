@@ -21,6 +21,11 @@ use Klevu\PhpSDK\Model\Platforms;
 
 class AccountLookupAction implements AccountLookupActionInterface
 {
+    private const VALID_INDEXING_VERSIONS = [
+        '',
+        '3',
+    ];
+
     /**
      * @var AccountLookupServiceInterface
      */
@@ -65,6 +70,7 @@ class AccountLookupAction implements AccountLookupActionInterface
     {
         $this->validateIsMagentoAccount($account);
         $this->validateAccountIsActive($account);
+        $this->validateIsValidIndexingVersion($account);
     }
 
     /**
@@ -99,6 +105,25 @@ class AccountLookupAction implements AccountLookupActionInterface
         throw new InactiveAccountException(
             phrase: __(
                 'Account can not be integrated as it is inactive.',
+            ),
+        );
+    }
+
+    /**
+     * @param AccountInterface $account
+     *
+     * @return void
+     * @throws InactiveAccountException
+     */
+    private function validateIsValidIndexingVersion(AccountInterface $account): void
+    {
+        if (in_array($account->getIndexingVersion(), self::VALID_INDEXING_VERSIONS, true)) {
+            return;
+        }
+        throw new InactiveAccountException(
+            phrase: __(
+                'Account can not be integrated as it used XML indexing. JSON indexing is required. '
+                . 'Please contact support to upgrade your account https://help.klevu.com/',
             ),
         );
     }

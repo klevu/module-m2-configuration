@@ -11,6 +11,7 @@ namespace Klevu\Configuration\Service;
 use Klevu\Configuration\Exception\Integration\InactiveAccountException;
 use Klevu\Configuration\Exception\Integration\InvalidPlatformException;
 use Klevu\Configuration\Exception\Integration\InvalidScopeException;
+use Klevu\Configuration\Service\Action\RemoveOldApiKeysActionInterface;
 use Klevu\Configuration\Service\Action\Sdk\AccountDetailsActionInterface;
 use Klevu\Configuration\Service\Action\UpdateEndpointsInterface;
 use Klevu\Configuration\Service\Provider\ApiKeyProvider;
@@ -61,6 +62,10 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      * @var StoreManagerInterface
      */
     private readonly StoreManagerInterface $storeManager;
+    /**
+     * @var RemoveOldApiKeysActionInterface
+     */
+    private readonly RemoveOldApiKeysActionInterface $removeOldApiKeys;
 
     /**
      * @param AccountDetailsActionInterface $accountDetailsAction
@@ -70,6 +75,7 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
      * @param ValidatorInterface $scopeValidator
      * @param EventManagerInterface $eventManager
      * @param StoreManagerInterface $storeManager
+     * @param RemoveOldApiKeysActionInterface $removeOldApiKeys
      */
     public function __construct(
         AccountDetailsActionInterface $accountDetailsAction,
@@ -79,6 +85,7 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
         ValidatorInterface $scopeValidator,
         EventManagerInterface $eventManager,
         StoreManagerInterface $storeManager,
+        RemoveOldApiKeysActionInterface $removeOldApiKeys,
     ) {
         $this->accountDetailsAction = $accountDetailsAction;
         $this->scopeConfigWriter = $scopeConfigWriter;
@@ -87,6 +94,7 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
         $this->scopeValidator = $scopeValidator;
         $this->eventManager = $eventManager;
         $this->storeManager = $storeManager;
+        $this->removeOldApiKeys = $removeOldApiKeys;
     }
 
     /**
@@ -124,6 +132,10 @@ class IntegrateApiKeysService implements IntegrateApiKeysServiceInterface
         $this->updateEndPoints->execute(
             account: $account,
             scope: $scopeId,
+            scopeType: $scopeType,
+        );
+        $this->removeOldApiKeys->execute(
+            scopeId: $scopeId,
             scopeType: $scopeType,
         );
         $this->eventManager->dispatch(

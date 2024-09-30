@@ -11,9 +11,9 @@ namespace Klevu\Configuration\Service\Provider;
 interface ApiKeysProviderInterface
 {
     /**
-     * @param int[] $storeIds
+     * @param int[]|null $storeIds
      *
      * @return string[]
      */
-    public function get(array $storeIds): array;
+    public function get(?array $storeIds = null): array;
 }

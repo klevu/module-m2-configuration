@@ -43,6 +43,18 @@ define([
             klevuIntegrationFormProvider.clearMessages()
                 .hideTabsOnLoad();
 
+            if (
+                "undefined" !== typeof self.source
+                && "undefined" !== typeof self.source.data
+                && "undefined" !== typeof self.source.data.messages
+                && self.source.data.messages
+            ) {
+                klevuIntegrationFormProvider.displayMessages(
+                    self.source.data.messages,
+                    'success'
+                );
+            }
+
             return self;
         },
 
@@ -172,6 +184,7 @@ define([
             $(wrapper).find("[name='active']").text(data.active);
             $(wrapper).find("[name='api_key']").text(data.apiKey);
             $(wrapper).find("[name='auth_key']").text(data.authKey);
+            $(wrapper).find("[name='indexing_version']").text(data.indexingVersion);
 
             return self;
         },

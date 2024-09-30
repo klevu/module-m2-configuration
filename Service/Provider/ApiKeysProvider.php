@@ -51,18 +51,18 @@ class ApiKeysProvider implements ApiKeysProviderInterface
     }
 
     /**
-     * @param int[] $storeIds
+     * @param int[]|null $storeIds
      *
      * @return string[]
      */
-    public function get(array $storeIds): array
+    public function get(?array $storeIds = null): array
     {
-        if (!$storeIds) {
+        if (null === $storeIds) {
             return [];
         }
         $apiKeys = [];
         foreach ($this->storeManager->getStores() as $store) {
-            if (!in_array((int)$store->getId(), $storeIds, true)) {
+            if ($storeIds && !in_array((int)$store->getId(), $storeIds, true)) {
                 continue;
             }
             try {

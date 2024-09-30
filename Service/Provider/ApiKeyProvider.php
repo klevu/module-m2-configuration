@@ -13,7 +13,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 
 class ApiKeyProvider implements ApiKeyProviderInterface
 {
-    public const CONFIG_XML_PATH_JS_API_KEY = 'klevu_configuration/auth_keys/js_api_key';
+    public const XML_FIELD_JS_API_KEY = 'js_api_key';
+    public const CONFIG_XML_PATH_JS_API_KEY = 'klevu_configuration/auth_keys/' . self::XML_FIELD_JS_API_KEY;
 
     /**
      * @var ScopeConfigInterface

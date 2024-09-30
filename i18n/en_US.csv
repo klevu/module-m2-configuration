@@ -112,3 +112,6 @@
 "Account integration with Magento is complete.","Account integration with Magento is complete."
 "Account Integration Complete","Account Integration Complete"
 "Close Modal","Close Modal"
+"Account can not be integrated as it used XML indexing. JSON indexing is required. Please contact support to upgrade your account https://help.klevu.com/","Account can not be integrated as it used XML indexing. JSON indexing is required. Please contact support to upgrade your account https://help.klevu.com/"
+"This store is not currently integrated.","This store is not currently integrated."
+"The form is pre-populated with Auth Keys used in a previous integration for this store.","The form is pre-populated with Auth Keys used in a previous integration for this store."

@@ -28,27 +28,27 @@ class VersionProviderTest extends TestCase
     /**
      * @var ModuleDirectory|(ModuleDirectory&MockObject)|MockObject
      */
-    private ModuleDirectory|MockObject $mockModuleDirectory;
+    private ModuleDirectory|MockObject|null $mockModuleDirectory = null;
     /**
      * @var ComposerPackage|(ComposerPackage&MockObject)|MockObject
      */
-    private ComposerPackage|MockObject $mockComposerPackage;
+    private ComposerPackage|MockObject|null $mockComposerPackage = null;
     /**
      * @var ComposerPackageFactory|(ComposerPackageFactory&MockObject)|MockObject
      */
-    private ComposerPackageFactory|MockObject $mockComposerPackageFactory;
+    private ComposerPackageFactory|MockObject|null $mockComposerPackageFactory = null;
     /**
      * @var DriverInterface|(MockObject&DriverInterface)|MockObject
      */
-    private DriverInterface|MockObject $mockFileSystemDriver;
+    private DriverInterface|MockObject|null $mockFileSystemDriver = null;
     /**
      * @var LoggerInterface|(MockObject&LoggerInterface)|MockObject
      */
-    private LoggerInterface|MockObject $mockLogger;
+    private LoggerInterface|MockObject|null $mockLogger = null;
     /**
      * @var SerializerInterface|(SerializerInterface&MockObject)|MockObject
      */
-    private SerializerInterface|MockObject $mockSerializer;
+    private SerializerInterface|MockObject|null $mockSerializer = null;
 
     public function testGet_ReturnsVersion(): void
     {

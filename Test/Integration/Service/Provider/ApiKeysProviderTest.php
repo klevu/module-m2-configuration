@@ -63,10 +63,10 @@ class ApiKeysProviderTest extends TestCase
         $this->storeFixturesPool->rollback();
     }
 
-    public function testGet_ReturnsEmptyArray_WhenEmptyArrayProvided(): void
+    public function testGet_ReturnsEmptyArray_WhenEmptyNull(): void
     {
         $provider = $this->instantiateTestObject();
-        $apiKeys = $provider->get([]);
+        $apiKeys = $provider->get(null);
 
         $this->assertEmpty(actual: $apiKeys);
     }
@@ -143,6 +143,53 @@ class ApiKeysProviderTest extends TestCase
 
         $this->assertCount(expectedCount: 1, haystack: $apiKeys);
         $this->assertContains(needle: 'klevu-js-api-key', haystack: $apiKeys);
+    }
+
+    /**
+     * @magentoConfigFixture klevu_test_store_1_store klevu_configuration/auth_keys/js_api_key klevu-js-api-key
+     * @magentoConfigFixture klevu_test_store_1_store klevu_configuration/auth_keys/rest_auth_key klevu-rest-auth-key
+     * @magentoConfigFixture klevu_test_store_2_store klevu_configuration/auth_keys/js_api_key klevu-js-api-key
+     * @magentoConfigFixture klevu_test_store_2_store klevu_configuration/auth_keys/rest_auth_key klevu-rest-auth-key
+     */
+    public function testGet_ReturnsArrayOfMergedKeys_WhenEmptyArrayPassed(): void
+    {
+        $this->createStore([
+            'code' => 'klevu_test_store_1',
+            'key' => 'test_store_1',
+        ]);
+        $this->createStore([
+            'code' => 'klevu_test_store_2',
+            'key' => 'test_store_2',
+        ]);
+
+        $provider = $this->instantiateTestObject();
+        $apiKeys = $provider->get([]);
+
+        $this->assertCount(expectedCount: 1, haystack: $apiKeys);
+        $this->assertContains(needle: 'klevu-js-api-key', haystack: $apiKeys);
+    }
+
+    /**
+     * @magentoConfigFixture klevu_test_store_1_store klevu_configuration/auth_keys/js_api_key klevu-js-api-key
+     * @magentoConfigFixture klevu_test_store_1_store klevu_configuration/auth_keys/rest_auth_key klevu-rest-auth-key
+     * @magentoConfigFixture klevu_test_store_2_store klevu_configuration/auth_keys/js_api_key klevu-js-api-key
+     * @magentoConfigFixture klevu_test_store_2_store klevu_configuration/auth_keys/rest_auth_key klevu-rest-auth-key
+     */
+    public function testGet_ReturnsEmptyArray_WhenNullPassed(): void
+    {
+        $this->createStore([
+            'code' => 'klevu_test_store_1',
+            'key' => 'test_store_1',
+        ]);
+        $this->createStore([
+            'code' => 'klevu_test_store_2',
+            'key' => 'test_store_2',
+        ]);
+
+        $provider = $this->instantiateTestObject();
+        $apiKeys = $provider->get();
+
+        $this->assertEmpty(actual: $apiKeys);
     }
 
     /**
