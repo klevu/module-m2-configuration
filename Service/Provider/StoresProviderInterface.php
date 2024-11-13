@@ -18,4 +18,9 @@ interface StoresProviderInterface
      * @return StoreInterface[]
      */
     public function get(string $apiKey): array;
+
+    /**
+     * @return array<string, StoreInterface[]>
+     */
+    public function getAllIntegratedStores(): array;
 }

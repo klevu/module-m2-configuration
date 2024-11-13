@@ -47,11 +47,11 @@ class StoresProvider implements StoresProviderInterface
     }
 
     /**
-     * @param string $apiKey
+     * @param string|null $apiKey
      *
      * @return StoreInterface[]
      */
-    public function get(string $apiKey): array
+    public function get(?string $apiKey): array
     {
         $return = [];
         $configItems = $this->getConfigItems();
@@ -61,6 +61,25 @@ class StoresProvider implements StoresProviderInterface
                 continue;
             }
             $return[$store->getId()] = $store;
+        }
+
+        return $return;
+    }
+
+    /**
+     * @return array<string, StoreInterface[]>
+     */
+    public function getAllIntegratedStores(): array
+    {
+        $return = [];
+        $configItems = $this->getConfigItems();
+        $stores = $this->storeManager->getStores();
+        foreach ($stores as $store) {
+            $apiKey = $this->getApiKeyForStore(configItems: $configItems, store: $store);
+            if (!$apiKey) {
+                continue;
+            }
+            $return[$apiKey][] = $store;
         }
 
         return $return;
@@ -95,6 +114,23 @@ class StoresProvider implements StoresProviderInterface
         $configItem = array_shift($filteredConfig);
 
         return $apiKey === $configItem?->getValue();
+    }
+
+    /**
+     * @param array<ConfigValue|DataObject> $configItems
+     * @param StoreInterface $store
+     *
+     * @return string|null
+     */
+    private function getApiKeyForStore(array $configItems, StoreInterface $store): ?string
+    {
+        $filteredConfig = $this->filterConfigByStoreScope(configItems: $configItems, store: $store);
+        if (!$filteredConfig) {
+            $filteredConfig = $this->filterConfigByWebsiteScope(configItems: $configItems, store: $store);
+        }
+        $configItem = array_shift($filteredConfig);
+
+        return $configItem?->getValue();
     }
 
     /**
