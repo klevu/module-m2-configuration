@@ -16,7 +16,7 @@ define([
     return Fieldset.extend({
         defaults: {
             integrationFormSelector: 'klevu_integration_account_confirmation',
-            integrationUrl: '/rest/default/V1/klevu-configuration/integrate-api-keys',
+            integrationUrl: '/rest/{storeCode}/V1/klevu-configuration/integrate-api-keys',
             klevuIntegrationFormProvider: null,
         },
 
@@ -37,7 +37,12 @@ define([
         integrate: function (action) {
             const self = this;
             let check = $.Deferred();
-            const url = self.integrationUrl;
+
+            let storeCode = 'default';
+            if (typeof self.source.store_code !== "undefined") {
+                storeCode = self.source.store_code;
+            }
+            const url = self.integrationUrl.replace('{storeCode}', storeCode);
             const currentElement = document.querySelector(
                 "[data-index='" + self.integrationFormSelector + "']"
             );

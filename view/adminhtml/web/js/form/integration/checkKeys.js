@@ -16,7 +16,7 @@ define([
     return Fieldset.extend({
         defaults: {
             checkApiKeysFormSelector: 'klevu_integration_auth_keys',
-            checkApiKeysUrl: '/rest/default/V1/klevu-configuration/check-api-keys',
+            checkApiKeysUrl: '/rest/{storeCode}/V1/klevu-configuration/check-api-keys',
             integrationFormSelector: 'klevu_integration_account_confirmation',
             klevuIntegrationFormProvider: null,
         },
@@ -64,7 +64,12 @@ define([
         checkApiKeys: function () {
             const self = this;
             let check = $.Deferred();
-            const url = self.checkApiKeysUrl;
+
+            let storeCode = 'default';
+            if (typeof self.source.store_code !== "undefined") {
+                storeCode = self.source.store_code;
+            }
+            const url = self.checkApiKeysUrl.replace('{storeCode}', storeCode);
             const currentElement = document.querySelector(
                 "[data-index='" + self.checkApiKeysFormSelector + "']"
             );

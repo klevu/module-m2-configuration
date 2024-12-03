@@ -50,7 +50,7 @@ class WizardDataProviderTest extends TestCase
     /**
      * @var StoreManagerInterface
      */
-    private mixed $storeManager;
+    private mixed $storeManager = null;
 
     /**
      * @return void
@@ -93,6 +93,9 @@ class WizardDataProviderTest extends TestCase
         $this->storeFixturesPool->rollback();
     }
 
+    /**
+     * @magentoAppIsolation enabled
+     */
     public function testGetData_ContainsLoggerScopeId_InSingleStoreMode(): void
     {
         ConfigFixture::setGlobal(
@@ -127,17 +130,27 @@ class WizardDataProviderTest extends TestCase
         $this->assertSame(
             expected: Store::DEFAULT_STORE_ID,
             actual: $result['scope_id'],
+            message: 'scope_id',
         );
 
         $this->assertArrayHasKey(key: 'scope', array: $result);
         $this->assertSame(
             expected: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
             actual: $result['scope'],
+            message: 'scope',
+        );
+
+        $this->assertArrayHasKey(key: 'store_code', array: $result);
+        $this->assertSame(
+            expected: $this->storeManager->getDefaultStoreView()->getCode(),
+            actual: $result['store_code'],
+            message: 'store_code',
         );
     }
 
     /**
      * @magentoAppIsolation enabled
+     * @group wip
      */
     public function testGetData_LoggerScopeIdMatchesScopeId_NotInSingleStoreMode(): void
     {
@@ -185,6 +198,13 @@ class WizardDataProviderTest extends TestCase
             expected: (int)$storeFixture->getId(),
             actual: $result['scope_id'],
             message: 'scope_id',
+        );
+
+        $this->assertArrayHasKey(key: 'store_code', array: $result);
+        $this->assertSame(
+            expected: $storeFixture->getCode(),
+            actual: $result['store_code'],
+            message: 'store_code',
         );
     }
 

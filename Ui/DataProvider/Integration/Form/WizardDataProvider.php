@@ -32,6 +32,7 @@ class WizardDataProvider extends AbstractDataProvider
     private const PARAM_LOGGER_SCOPE_ID = 'logger_scope_id';
     private const PARAM_SCOPE_ID = 'scope_id';
     private const PARAM_SCOPE = 'scope';
+    private const PARAM_STORE_CODE = 'store_code';
     private const PARAM_DISPLAY_SCOPE = 'display_scope';
     private const BEARER = 'bearer';
     private const MULTI_STORE_MODE = 'multi_store_mode';
@@ -172,6 +173,10 @@ class WizardDataProvider extends AbstractDataProvider
         $return[$scopeId][self::PARAM_LOGGER_SCOPE_ID] = $this->getLoggerScopeId();
         $return[$scopeId][self::PARAM_SCOPE_ID] = $scopeId;
         $return[$scopeId][self::PARAM_SCOPE] = $this->currentScope;
+        $return[$scopeId][self::PARAM_STORE_CODE] = $this->getStoreCodeFromScopeId(
+            scopeId: $scopeId,
+            scope: $this->currentScope,
+        );
         $return[$scopeId][self::BEARER] = $this->getBearerToken->execute();
         $return[$scopeId][self::MULTI_STORE_MODE] = !(bool)$this->storeManager->isSingleStoreMode();
         $return[$scopeId][self::PARAM_DISPLAY_SCOPE] = ucwords(rtrim($this->currentScope, 's'))
@@ -235,6 +240,51 @@ class WizardDataProvider extends AbstractDataProvider
         }
 
         return $return;
+    }
+
+    /**
+     * @param int $scopeId
+     * @param string $scope
+     *
+     * @return string|null
+     */
+    private function getStoreCodeFromScopeId(
+        int $scopeId,
+        string $scope,
+    ): ?string {
+        try {
+            switch ($scope) {
+                case ScopeConfigInterface::SCOPE_TYPE_DEFAULT:
+                    $storeView = $this->storeManager->getDefaultStoreView();
+                    break;
+
+                case ScopeInterface::SCOPE_STORES:
+                    $storeView = $this->storeManager->getStore(storeId: $scopeId);
+                    break;
+
+                case ScopeInterface::SCOPE_WEBSITES:
+                    $website = $this->storeManager->getWebsite(websiteId: $scopeId);
+                    $storeView = method_exists($website, 'getDefaultStore')
+                        ? $website->getDefaultStore()
+                        : null;
+                    break;
+
+                default:
+                    $storeView = null;
+            }
+        } catch (LocalizedException $exception) {
+            $this->logger->error(
+                message: 'Method: {method} - Error: {message}',
+                context: [
+                    'method' => __METHOD__,
+                    'message' => $exception->getMessage(),
+                ],
+            );
+
+            return null;
+        }
+
+        return $storeView?->getCode();
     }
 
     /**

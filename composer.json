@@ -2,7 +2,7 @@
     "name": "klevu/module-m2-configuration",
     "description": "Provides integration and a configuration framework for other Klevu modules to extend",
     "type": "magento2-module",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "require": {
         "klevu/module-m2-logger": "^1.0.0",
         "klevu/php-sdk": "^1.0.0",

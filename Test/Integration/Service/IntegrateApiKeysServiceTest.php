@@ -130,6 +130,10 @@ class IntegrateApiKeysServiceTest extends TestCase
         ];
     }
 
+    /**
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
+     */
     public function testExecute_ThrowsException_WhenAuthKeyEmpty(): void
     {
         try {
@@ -144,9 +148,11 @@ class IntegrateApiKeysServiceTest extends TestCase
             $this->assertContains(needle: 'REST AUTH Key must not be empty', haystack: $exception->getErrors());
         }
     }
-
+    
     /**
      * @dataProvider testExecute_ThrowsException_WhenAuthKeyInvalid_dataProvider
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
      */
     public function testExecute_ThrowsException_WhenAuthKeyInvalid(string $invalidAuthKey): void
     {
@@ -179,6 +185,7 @@ class IntegrateApiKeysServiceTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
      */
     public function testExecute_ThrowsException_WhenAccountDoesNotExist(): void
     {
@@ -194,6 +201,8 @@ class IntegrateApiKeysServiceTest extends TestCase
 
     /**
      * @dataProvider dataProvider_testExecute_ThrowsException_WhenScopeIsInvalid
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
      */
     public function testExecute_ThrowsException_WhenScopeIsInvalid(string $invalidScope): void
     {

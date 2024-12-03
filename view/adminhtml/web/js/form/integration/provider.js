@@ -21,7 +21,6 @@ define([
             messagesClass: 'messages',
             modalSelector: 'klevu_integration_store_listing_klevu_integration_store_listing_klevu_integration_wizard_modal',
             lastFieldsetSelector: 'klevu_integration_close_modal',
-            integrationUrl: '/rest/default/V1/klevu-configuration/integrate-api-keys',
             listingIndex: 'klevu_integration_store_listing', // index of store listing ui component to refresh
         },
 

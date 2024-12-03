@@ -66,6 +66,9 @@ class StoresProviderTest extends TestCase
         $this->storeFixturesPool->rollback();
     }
 
+    /**
+     * @magentoAppIsolation enabled
+     */
     public function testGet_ReturnsEmptyArray_WhenNoStoresWithKey(): void
     {
         $provider = $this->instantiateTestObject();
