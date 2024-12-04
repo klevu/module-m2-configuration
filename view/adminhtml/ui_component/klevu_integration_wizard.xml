@@ -116,6 +116,14 @@
                 </imports>
             </settings>
         </field>
+        <field name="store_code" formElement="hidden" sortOrder="55">
+            <settings>
+                <elementTmpl>ui/form/element/hidden</elementTmpl>
+                <imports>
+                    <link name="value">${ $.provider }:data.store_code</link>
+                </imports>
+            </settings>
+        </field>
         <field name="logger_scope_id" formElement="hidden" sortOrder="60">
             <settings>
                 <elementTmpl>ui/form/element/hidden</elementTmpl>

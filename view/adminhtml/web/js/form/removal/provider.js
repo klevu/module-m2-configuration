@@ -16,7 +16,7 @@ define([
         defaults: {
             modalSelector: 'klevu_integration_store_listing_klevu_integration_store_listing_klevu_integration_removal_modal',
             ApiKeysFormSelector: 'klevu_remove_auth_keys',
-            removeApiKeysUrl: '/rest/default/V1/klevu-configuration/remove-api-keys',
+            removeApiKeysUrl: '/rest/{storeCode}/V1/klevu-configuration/remove-api-keys',
             listingIndex: 'klevu_integration_store_listing', // index of store listing ui component to refresh
         },
 
@@ -38,7 +38,12 @@ define([
         removeApiKeys: function () {
             const self = this;
             let check = $.Deferred();
-            const url = self.removeApiKeysUrl;
+
+            let storeCode = 'default';
+            if (typeof self.store_code !== "undefined") {
+                storeCode = self.store_code;
+            }
+            const url = self.removeApiKeysUrl.replace('{storeCode}', storeCode);
 
             self.clearMessages()
                 .startProcess();

@@ -62,6 +62,9 @@ class IntegrateKlevuAccountActionTest extends TestCase
         $this->storeFixturesPool->rollback();
     }
 
+    /**
+     * @magentoAppIsolation enabled
+     */
     public function testPrepareDataSource_ForNoIntegration_DoesNotIncludeWebsiteIntegrationLink(): void
     {
         $this->createStore();
@@ -92,6 +95,9 @@ class IntegrateKlevuAccountActionTest extends TestCase
         $this->assertArrayNotHasKey(key: 'remove_website', array: $links);
     }
 
+    /**
+     * @magentoAppIsolation enabled
+     */
     public function testPrepareDataSource_ForStoreIntegration_DoesNotIncludeWebsiteIntegrationLink(): void
     {
         $jsApiKey = 'klevu-js-key';
