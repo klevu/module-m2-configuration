@@ -24,9 +24,9 @@ class StoreLocaleCodesProvider implements StoreLocaleCodesProviderInterface
      */
     private readonly ScopeConfigInterface $scopeConfig;
     /**
-     * @var string[]|null
+     * @var array<string, string[]>
      */
-    private ?array $storeLocales = null;
+    private array $storeLocales = [];
 
     /**
      * @param StoresProviderInterface $storesProvider
@@ -47,15 +47,17 @@ class StoreLocaleCodesProvider implements StoreLocaleCodesProviderInterface
      */
     public function get(string $apiKey): array
     {
-        if (null !== $this->storeLocales) {
-            return $this->storeLocales;
-        }
-        $stores = $this->storesProvider->get($apiKey);
-        foreach ($stores as $store) {
-            $this->storeLocales[$store->getId()] = $this->getByStore($store);
+        if (array_key_exists($apiKey, $this->storeLocales)) {
+            return $this->storeLocales[$apiKey];
         }
 
-        return $this->storeLocales ?? [];
+        $this->storeLocales[$apiKey] = [];
+        $stores = $this->storesProvider->get($apiKey);
+        foreach ($stores as $store) {
+            $this->storeLocales[$apiKey][$store->getId()] = $this->getByStore($store);
+        }
+
+        return $this->storeLocales[$apiKey] ?? [];
     }
 
     /**
