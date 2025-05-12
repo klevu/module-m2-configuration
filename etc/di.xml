@@ -97,9 +97,6 @@
     <preference for="Klevu\Configuration\Service\RemoveApiKeysServiceInterface"
                 type="Klevu\Configuration\Service\RemoveApiKeysService"/>
 
-    <preference for="Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterface"
-                type="Klevu\PhpSDK\Service\Account\AccountFeaturesService"/>
-
     <preference for="Klevu\PhpSDK\Api\Service\Account\AccountLookupServiceInterface"
                 type="Klevu\Configuration\Service\Account\AccountLookupService"/> <!-- Virtual type defined below -->
 
