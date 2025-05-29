@@ -40,6 +40,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Klevu\Configuration\Service\IntegrateApiKeysService
+ * @runTestsInSeparateProcesses
  */
 class IntegrateApiKeysServiceTest extends TestCase
 {
@@ -346,11 +347,11 @@ class IntegrateApiKeysServiceTest extends TestCase
             className: AccountFeaturesServiceInterfaceFactory::class,
             forPreference: true,
         );
-        $this->objectManager->addSharedInstance(
-            instance: $mockAccountFeaturesService,
-            className: 'Klevu\Configuration\Service\Account\AccountFeaturesService', // virtualType
-            forPreference: true,
-        );
+//        $this->objectManager->addSharedInstance(
+//            instance: $mockAccountFeaturesService,
+//            className: 'Klevu\Configuration\Service\Account\AccountFeaturesService', // virtualType
+//            forPreference: true,
+//        );
 
         $mockEventManager = $this->getMockBuilder(ManagerInterface::class)
             ->getMock();

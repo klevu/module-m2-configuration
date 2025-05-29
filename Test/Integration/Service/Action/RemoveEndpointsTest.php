@@ -24,6 +24,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Klevu\Configuration\Service\Action\RemoveEndpoints
+ * @runTestsInSeparateProcesses
  */
 class RemoveEndpointsTest extends TestCase
 {

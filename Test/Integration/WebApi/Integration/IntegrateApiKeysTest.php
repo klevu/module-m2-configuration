@@ -22,6 +22,8 @@ use Klevu\PhpSDK\Model\AccountCredentialsFactory;
 use Klevu\PhpSDK\Model\AccountFactory;
 use Klevu\PhpSDK\Service\Account\AccountFeaturesService;
 use Klevu\PhpSDK\Service\Account\AccountLookupService;
+use Klevu\TestFixtures\Store\StoreFixturesPool;
+use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\AttributeApiCallTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
@@ -32,10 +34,12 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Klevu\Configuration\WebApi\Integration\IntegrateApiKeys
+ * @runTestsInSeparateProcesses
  */
 class IntegrateApiKeysTest extends TestCase
 {
     use AttributeApiCallTrait;
+    use StoreTrait;
 
     /**
      * @var ObjectManagerInterface|null
@@ -53,6 +57,16 @@ class IntegrateApiKeysTest extends TestCase
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->mockLogger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+        $this->storeFixturesPool = $this->objectManager->create(StoreFixturesPool::class);
+    }
+
+    /**
+     * @return void
+     * @throws \Exception
+     */
+    protected function tearDown(): void
+    {
+        $this->storeFixturesPool->rollback();
     }
 
     public function testImplements_IntegrateApiKeysInterface(): void
@@ -294,7 +308,7 @@ class IntegrateApiKeysTest extends TestCase
 
     public function testExecute_ReturnsError_ForBadRequest(): void
     {
-        $jsApiKey = 'klevu-1234567890';
+        $jsApiKey = 'klevu-1234567890' . __LINE__;
         $restAuthKey = $this->generateAuthKey(length: 10);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -350,7 +364,7 @@ class IntegrateApiKeysTest extends TestCase
 
     public function testExecute_ReturnsError_ForBadResponse(): void
     {
-        $jsApiKey = 'klevu-1234567890';
+        $jsApiKey = 'klevu-1234567890' . __LINE__;
         $restAuthKey = $this->generateAuthKey(length: 10);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -405,7 +419,7 @@ class IntegrateApiKeysTest extends TestCase
 
     public function testExecute_ReturnsError_WhenValidationFails_PlatformIsNotMagento(): void
     {
-        $jsApiKey = 'klevu-1234567890';
+        $jsApiKey = 'klevu-1234567890' . __LINE__;
         $restAuthKey = $this->generateAuthKey(length: 10);
 
         $accountFactory = new AccountFactory();
@@ -477,7 +491,7 @@ class IntegrateApiKeysTest extends TestCase
 
     public function testExecute_ReturnsError_WhenValidationFails_AccountInactive(): void
     {
-        $jsApiKey = 'klevu-1234567890';
+        $jsApiKey = 'klevu-1234567890' . __LINE__;
         $restAuthKey = $this->generateAuthKey(length: 10);
 
         $accountFactory = new AccountFactory();
@@ -549,9 +563,20 @@ class IntegrateApiKeysTest extends TestCase
      */
     public function testExecute_ReturnsExpectedData(): void
     {
+        $this->createStore(
+            storeData: [
+                'code' => 'phpunit_test_integrateapikeys',
+                'name' => 'PHPUnit Test Store (Integrate API Keys)',
+                'is_active' => true,
+                'key' => 'phpunit_test_integrateapikeys',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('phpunit_test_integrateapikeys');
+        $store = $storeFixture->get();
+
         $this->mockSdkAttributeGetApiCall();
 
-        $jsApiKey = 'klevu-1234567890';
+        $jsApiKey = 'klevu-1234567890' . __LINE__;
         $restAuthKey = $this->generateAuthKey(length: 10);
 
         $accountCredentialsFactory = $this->objectManager->get(type: AccountCredentialsFactory::class);
@@ -627,7 +652,7 @@ class IntegrateApiKeysTest extends TestCase
         $response = $webApi->execute(
             apiKey: $jsApiKey,
             authKey: $restAuthKey,
-            scopeId: 1,
+            scopeId: (int)$store->getId(),
         );
 
         $this->assertSame(expected: 'success', actual: $response->getStatus());

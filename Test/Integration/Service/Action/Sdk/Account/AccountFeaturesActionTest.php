@@ -32,6 +32,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Action\AccountFeaturesAction
+ * @runTestsInSeparateProcesses
  */
 class AccountFeaturesActionTest extends TestCase
 {

@@ -14,6 +14,9 @@ use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\HTTP\PhpEnvironment\Response;
 use Magento\TestFramework\TestCase\AbstractBackendController as AbstractBackendControllerTestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class InformationTest extends AbstractBackendControllerTestCase
 {
     use GetAdminFrontNameTrait;

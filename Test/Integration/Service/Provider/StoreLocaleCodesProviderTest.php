@@ -13,10 +13,7 @@ use Klevu\Configuration\Service\Provider\StoreLocaleCodesProvider;
 use Klevu\Configuration\Service\Provider\StoreLocaleCodesProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
-use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
@@ -24,17 +21,29 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers StoreLocaleCodesProvider
- * @method StoreLocaleCodesProviderInterface instantiateTestObject(?array $arguments = null)
- * @method StoreLocaleCodesProviderInterface instantiateTestObjectFromInterface(?array $arguments = null)
+ * @runTestsInSeparateProcesses
  */
 class StoreLocaleCodesProviderTest extends TestCase
 {
-    use ObjectInstantiationTrait;
     use SetAuthKeysTrait;
     use StoreTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -66,18 +75,36 @@ class StoreLocaleCodesProviderTest extends TestCase
 
     /**
      * @magentoConfigFixture default/general/locale/code en_US
-     * @magentoConfigFixture klevu_test_store_1_store general/locale/code en_GB
+     * @magentoConfigFixture klevu_test_store_storelocale_store general/locale/code en_GB
      */
     public function testGetByStore_ReturnsString_WithLocalCodeForRequestedStore(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storelocale',
+                'name' => 'Klevu Test Store StoreLocaleCodesProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storelocale',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'general/locale/code',
+            value: 'en_US',
+        );
+        ConfigFixture::setForStore(
+            path: 'general/locale/code',
+            value: 'en_GB',
+            storeCode: 'klevu_test_store_storelocale',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storelocale');
 
         $provider = $this->instantiateTestObject();
         $result = $provider->getByStore($storeFixture->get());
 
         $this->assertSame(
-            expected: 'en-GB-klevu_test_store_1',
+            expected: 'en-GB-klevu_test_store_storelocale',
             actual: $result,
         );
     }
@@ -161,5 +188,29 @@ class StoreLocaleCodesProviderTest extends TestCase
             expected: 'de-DE-klevu_test_store_3',
             actual: $result[$storeFixture3->getId()],
         );
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

@@ -14,10 +14,13 @@ use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
 use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
+use Magento\Framework\App\Area;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers ScopeConfigProvider
@@ -27,6 +30,7 @@ use PHPUnit\Framework\TestCase;
 class ScopeConfigProviderTest extends TestCase
 {
     use ObjectInstantiationTrait;
+    use SetAreaTrait;
     use StoreTrait;
     use TestImplementsInterfaceTrait;
 
@@ -167,11 +171,27 @@ class ScopeConfigProviderTest extends TestCase
      */
     public function testGet_ReturnsString_WhenReturnTypeString(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_scopeconfig',
+                'name' => 'Klevu Test Store ScopeConfigProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_scopeconfig',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: '12345',
+            storeCode: 'klevu_test_store_scopeconfig',
+        );
+
+        $this->setArea(Area::AREA_FRONTEND);
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_scopeconfig');
 
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
-        $scopeProvider->setCurrentScope($store->get());
+        $scopeProvider->setCurrentScope($storeFixture->get());
 
         $provider = $this->instantiateTestObject([
             'path' => 'klevu_configuration/auth_keys/js_api_key',
@@ -188,11 +208,27 @@ class ScopeConfigProviderTest extends TestCase
      */
     public function testGet_ReturnsInt_WhenReturnTypeInt(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_scopeconfig',
+                'name' => 'Klevu Test Store ScopeConfigProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_scopeconfig',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_test/some/path',
+            value: '123456',
+            storeCode: 'klevu_test_store_scopeconfig',
+        );
+
+        $this->setArea(Area::AREA_FRONTEND);
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_scopeconfig');
 
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
-        $scopeProvider->setCurrentScope($store->get());
+        $scopeProvider->setCurrentScope($storeFixture->get());
 
         $provider = $this->instantiateTestObject([
             'path' => 'klevu_test/some/path',
@@ -209,11 +245,27 @@ class ScopeConfigProviderTest extends TestCase
      */
     public function testGet_ReturnsFloat_WhenReturnTypeFloat(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_scopeconfig',
+                'name' => 'Klevu Test Store ScopeConfigProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_scopeconfig',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_test/some/path',
+            value: '1234.56',
+            storeCode: 'klevu_test_store_scopeconfig',
+        );
+
+        $this->setArea(Area::AREA_FRONTEND);
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_scopeconfig');
 
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
-        $scopeProvider->setCurrentScope($store->get());
+        $scopeProvider->setCurrentScope($storeFixture->get());
 
         $provider = $this->instantiateTestObject([
             'path' => 'klevu_test/some/path',
@@ -230,11 +282,27 @@ class ScopeConfigProviderTest extends TestCase
      */
     public function testGet_ReturnsTrue_WhenReturnTypeBool_ValueTruthy(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_scopeconfig',
+                'name' => 'Klevu Test Store ScopeConfigProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_scopeconfig',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_test/some/path',
+            value: '124',
+            storeCode: 'klevu_test_store_scopeconfig',
+        );
+
+        $this->setArea(Area::AREA_FRONTEND);
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_scopeconfig');
 
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
-        $scopeProvider->setCurrentScope($store->get());
+        $scopeProvider->setCurrentScope($storeFixture->get());
 
         $provider = $this->instantiateTestObject([
             'path' => 'klevu_test/some/path',
@@ -251,11 +319,27 @@ class ScopeConfigProviderTest extends TestCase
      */
     public function testGet_ReturnsFalse_WhenReturnTypeBool_ValueStringFalse(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_scopeconfig',
+                'name' => 'Klevu Test Store ScopeConfigProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_scopeconfig',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_test/some/path',
+            value: 'false',
+            storeCode: 'klevu_test_store_scopeconfig',
+        );
+
+        $this->setArea(Area::AREA_FRONTEND);
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_scopeconfig');
 
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
-        $scopeProvider->setCurrentScope($store->get());
+        $scopeProvider->setCurrentScope($storeFixture->get());
 
         $provider = $this->instantiateTestObject([
             'path' => 'klevu_test/some/path',

@@ -13,6 +13,9 @@ use Magento\Framework\Exception\AuthenticationException;
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\TestFramework\TestCase\AbstractBackendController as AbstractBackendControllerTestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class DeveloperTest extends AbstractBackendControllerTestCase
 {
     use GetAdminFrontNameTrait;

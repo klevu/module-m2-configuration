@@ -16,11 +16,13 @@ use Klevu\Configuration\Service\RemoveApiKeysServiceInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\Writer;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\RemoveApiKeysService
@@ -79,9 +81,45 @@ class RemoveApiKeyServiceTest extends TestCase
      */
     public function testExecute_RemovesAuthKeysAndEndpoints(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get(key: 'test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_removeapikeys',
+                'name' => 'Test Store AuthKeyProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_removeapikeys',
+            ],
+        );
+
+        $storeFixture = $this->storeFixturesPool->get(
+            key: 'klevu_test_store_removeapikeys',
+        );
+
+        /** @var Writer $configWriter */
+        $configWriter = $this->objectManager->get(Writer::class);
+        $configToWrite = [
+            'klevu_configuration/auth_keys/js_api_key' => 'klevu-js-api-key',
+            'klevu_configuration/auth_keys/rest_auth_key' => 'klevu-rest-auth-key',
+            'klevu_configuration/developer/url_analytics' => 'analytics.url',
+            'klevu_configuration/developer/url_cat_nav' => 'catnav.url',
+            'klevu_configuration/developer/url_indexing' => 'indexing.url',
+            'klevu_configuration/developer/url_js' => 'js.url',
+            'klevu_configuration/developer/url_search' => 'search.url',
+            'klevu_configuration/developer/url_tiers' => 'tiers.url',
+        ];
+        foreach ($configToWrite as $path => $value) {
+            $configWriter->save(
+                path: $path,
+                value: $value,
+                scope: ScopeInterface::SCOPE_STORES,
+                scopeId: (int)$storeFixture->getId(),
+            );
+        }
+
+        /** @var ScopeConfigInterface $scopeConfig */
         $scopeConfig = $this->objectManager->get(ScopeConfigInterface::class);
+        if (method_exists($scopeConfig, 'clean')) {
+            $scopeConfig->clean();
+        }
 
         $initialConfigValues = [
             ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY => 'klevu-js-api-key',
@@ -97,7 +135,7 @@ class RemoveApiKeyServiceTest extends TestCase
             $configValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_STORES,
-                $store->getId(),
+                $storeFixture->getId(),
             );
             $this->assertSame(expected: $value, actual: $configValue);
         }
@@ -117,7 +155,7 @@ class RemoveApiKeyServiceTest extends TestCase
             'eventManager' => $mockEventManager,
         ]);
         $service->execute(
-            scopeId: (int)$store->getId(),
+            scopeId: (int)$storeFixture->getId(),
             scopeType: ScopeInterface::SCOPE_STORES,
         );
 
@@ -135,7 +173,7 @@ class RemoveApiKeyServiceTest extends TestCase
             $configValue = $scopeConfig->getValue(
                 $path,
                 ScopeInterface::SCOPE_STORES,
-                $store->getId(),
+                $storeFixture->getId(),
             );
             $this->assertSame(expected: $value, actual: $configValue);
         }

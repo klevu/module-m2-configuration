@@ -12,6 +12,9 @@ namespace Klevu\Configuration\Test\Integration\WebApi;
 
 use Magento\Webapi\Controller\Rest\SchemaRequestProcessorTest;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class SwaggerTest extends SchemaRequestProcessorTest
 {
     // pulling swagger tests into our testsuites to guard against regressions

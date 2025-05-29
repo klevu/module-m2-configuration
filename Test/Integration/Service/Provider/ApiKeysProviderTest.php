@@ -21,6 +21,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Provider\ApiKeysProvider::class
@@ -105,6 +106,28 @@ class ApiKeysProviderTest extends TestCase
         ]);
         $storeFixture2 = $this->storeFixturesPool->get('test_store_2');
 
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key-1',
+            storeCode: 'klevu_test_store_1',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key-1',
+            storeCode: 'klevu_test_store_1',
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key-2',
+            storeCode: 'klevu_test_store_2',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key-2',
+            storeCode: 'klevu_test_store_2',
+        );
+
         $provider = $this->instantiateTestObject();
         $apiKeys = $provider->get([
             (int)$storeFixture1->getId(),
@@ -135,6 +158,28 @@ class ApiKeysProviderTest extends TestCase
         ]);
         $storeFixture2 = $this->storeFixturesPool->get('test_store_2');
 
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_1',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_1',
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_2',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_2',
+        );
+
         $provider = $this->instantiateTestObject();
         $apiKeys = $provider->get([
             (int)$storeFixture1->getId(),
@@ -162,10 +207,42 @@ class ApiKeysProviderTest extends TestCase
             'key' => 'test_store_2',
         ]);
 
+        // Clean dirty data lurking from ApiKeyProviderTest
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: null,
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_1',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_1',
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_2',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_2',
+        );
+
         $provider = $this->instantiateTestObject();
         $apiKeys = $provider->get([]);
 
-        $this->assertCount(expectedCount: 1, haystack: $apiKeys);
+        $this->assertCount(
+            expectedCount: 1,
+            haystack: $apiKeys,
+            message: 'Found API Keys: ' . implode(', ', $apiKeys),
+        );
         $this->assertContains(needle: 'klevu-js-api-key', haystack: $apiKeys);
     }
 
@@ -185,6 +262,28 @@ class ApiKeysProviderTest extends TestCase
             'code' => 'klevu_test_store_2',
             'key' => 'test_store_2',
         ]);
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_1',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_1',
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'klevu-js-api-key',
+            storeCode: 'klevu_test_store_2',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'klevu-rest-auth-key',
+            storeCode: 'klevu_test_store_2',
+        );
 
         $provider = $this->instantiateTestObject();
         $apiKeys = $provider->get();

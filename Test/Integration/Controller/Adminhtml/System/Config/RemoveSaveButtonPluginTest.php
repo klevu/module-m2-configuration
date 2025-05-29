@@ -14,6 +14,9 @@ use Magento\TestFramework\Request as TestFrameworkRequest;
 use Magento\TestFramework\Response as TestFrameworkResponse;
 use Magento\TestFramework\TestCase\AbstractBackendController as AbstractBackendControllerTestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class RemoveSaveButtonPluginTest extends AbstractBackendControllerTestCase
 {
     use GetAdminFrontNameTrait;

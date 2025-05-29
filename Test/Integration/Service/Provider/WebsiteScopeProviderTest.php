@@ -12,8 +12,10 @@ use Klevu\Configuration\Service\Provider\WebsiteScopeProvider;
 use Klevu\Configuration\Service\Provider\WebsiteScopeProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
@@ -25,9 +27,11 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \Klevu\Configuration\Service\Provider\WebsiteScopeProvider
  * @magentoAppIsolation enabled
+ * @runTestsInSeparateProcesses
  */
 class WebsiteScopeProviderTest extends TestCase
 {
+    use SetAreaTrait;
     use StoreTrait;
     use WebsiteTrait;
 
@@ -114,6 +118,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsWebsite_ForFrontend(): void
     {
+        $this->setArea(Area::AREA_FRONTEND);
+
         $this->createWebsite();
         $website = $this->websiteFixturesPool->get('test_website');
         $this->createStore([
@@ -138,6 +144,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testSetCurrentWebsite_OverridesStoreManager(): void
     {
+        $this->setArea(Area::AREA_FRONTEND);
+
         $this->createWebsite();
         $website = $this->websiteFixturesPool->get('test_website');
         $this->createStore([
@@ -161,6 +169,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsAdminWebsite_WhenAppAreaIsCronTab(): void
     {
+        $this->setArea(Area::AREA_CRONTAB);
+
         $websiteScopeProvider = $this->instantiateWebsiteScopeProvider();
         $currentWebsite = $websiteScopeProvider->getCurrentWebsite();
 
@@ -183,6 +193,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsNull_WhenAppAreaIsAdmin_WebsiteParamMissing(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $websiteScopeProvider = $this->instantiateWebsiteScopeProvider();
         $currentWebsite = $websiteScopeProvider->getCurrentWebsite();
 
@@ -194,6 +206,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsNull_WhenAppAreaIsWebApiRest_WebsiteParamMissing(): void
     {
+        $this->setArea(Area::AREA_WEBAPI_REST);
+
         $websiteScopeProvider = $this->instantiateWebsiteScopeProvider();
         $currentWebsite = $websiteScopeProvider->getCurrentWebsite();
 
@@ -205,6 +219,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsWebsiteInParams_WhenAppAreaIsAdmin(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $this->createWebsite();
         $website = $this->websiteFixturesPool->get('test_website');
 
@@ -229,6 +245,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testGetCurrentWebsite_ReturnsNull_WhenAppAreaIsAdmin_InvalidWebsiteParam(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $mockRequest = $this->getMockBuilder(RequestInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -249,6 +267,8 @@ class WebsiteScopeProviderTest extends TestCase
      */
     public function testUnsetCurrentWebsite_SetsNull(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $this->createWebsite();
         $website = $this->websiteFixturesPool->get('test_website');
 

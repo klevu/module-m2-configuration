@@ -25,12 +25,16 @@ use Magento\TestFramework\ObjectManager;
 // phpcs:ignore SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces.NonFullyQualified
 use Monolog\Handler\HandlerInterface;
 // phpcs:ignore SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces.NonFullyQualified
+use Monolog\Level;
 use Monolog\Logger;
+use Monolog\LogRecord;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Logger\Handler\LogIfConfigured
  * @phpstan-type Level Logger::DEBUG|Logger::INFO|Logger::NOTICE|Logger::WARNING|Logger::ERROR|Logger::CRITICAL|Logger::ALERT|Logger::EMERGENCY
+ * @runTestsInSeparateProcesses
  */
 class LogIfConfiguredTest extends TestCase
 {
@@ -86,7 +90,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfLogLevelIsMoreThenMinLevel_ForStore(): void
     {
-        $record = ['level' => 400];
+        $record = $this->getRecord(
+            level: 400,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -109,7 +115,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfLogLevelIsMoreThenMinLevel_ForStoreWhenSSMIsEnabled(): void
     {
-        $record = ['level' => 400];
+        $record = $this->getRecord(
+            level: 400,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -130,7 +138,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfLogLevelIsEqualToMinLevel_ForStore(): void
     {
-        $record = ['level' => 500];
+        $record = $this->getRecord(
+            level: 500,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -153,7 +163,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfLogLevelIsEqualToMinLevel_ForStoreWhenSSMIsEnabled(): void
     {
-        $record = ['level' => 500];
+        $record = $this->getRecord(
+            level: 500,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -168,14 +180,27 @@ class LogIfConfiguredTest extends TestCase
      * @magentoAppIsolation enabled
      * @magentoDbIsolation disabled
      * @magentoCache all disabled
-     * @magentoConfigFixture default/klevu_configuration/developer/log_level_configuration 200
-     * @magentoConfigFixture klevu_test_store_1_store klevu_configuration/developer/log_level_configuration 400
+     * @magentoConfigFixture default/klevu_configuration/developer/log_level_configuration 100
+     * @magentoConfigFixture klevu_test_store_1 klevu_configuration/developer/log_level_configuration 400
      * @return void
      */
     public function testIsHandling_ReturnsFalse_IfLogLevelIsLessThanMinLevel_ForStore(): void
     {
-        $record = ['level' => 300];
+        $record = $this->getRecord(
+            level: 300,
+        );
+
         $this->createStore();
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 100,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+            storeCode: 'klevu_test_store_1',
+        );
+
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
 
@@ -197,8 +222,26 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsFalse_IfLogLevelIsLessThanMinLevel_ForStoreWhenSSMIsEnabled(): void
     {
-        $record = ['level' => 300];
+        $record = $this->getRecord(
+            level: 300,
+        );
+
         $this->createStore();
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 100,
+        );
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+            storeCode: 'klevu_test_store_1',
+        );
+
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
 
@@ -216,7 +259,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfMinLogLevelIsNotSet_ForStore(): void
     {
-        $record = ['level' => 300];
+        $record = $this->getRecord(
+            level: 300,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -236,7 +281,9 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsTrue_IfMinLogLevelIsNotSet_ForStoreWhenSSMIsEnabled(): void
     {
-        $record = ['level' => 300];
+        $record = $this->getRecord(
+            level: 300,
+        );
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
         $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
@@ -257,6 +304,12 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsFalseIfLogLevelIsNotValid_ForStore(mixed $logLevels): void
     {
+        if (class_exists(LogRecord::class)) {
+            $this->markTestSkipped(
+                'This test is not applicable for LogRecord, as it does not support invalid log levels.'
+            );
+        }
+
         $record = ['level' => $logLevels];
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
@@ -281,6 +334,12 @@ class LogIfConfiguredTest extends TestCase
      */
     public function testIsHandling_ReturnsFalseIfLogLevelIsNotValid_ForStoreWhenSSMIsEnabled(mixed $logLevels): void
     {
+        if (class_exists(LogRecord::class)) {
+            $this->markTestSkipped(
+                'This test is not applicable for LogRecord, as it does not support invalid log levels.'
+            );
+        }
+
         $record = ['level' => $logLevels];
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
@@ -415,18 +474,30 @@ class LogIfConfiguredTest extends TestCase
         int $level = Logger::WARNING,
         string $message = 'randomTestMessage',
         array $context = [],
-    ): array {
-        return [
+    ): array|LogRecord {
+        $returnData = [
             'message' => $message,
             'context' => $context,
             'level' => $level,
             'level_name' => Logger::getLevelName($level),
             'channel' => 'klevu',
-            'datetime' => \DateTime::createFromFormat(
+            'datetime' => \DateTimeImmutable::createFromFormat(
                 'U.u',
                 sprintf('%.6F', microtime(true)),
             ),
             'extra' => [],
         ];
+
+        return (class_exists(LogRecord::class))
+            ? new LogRecord(
+                datetime: $returnData['datetime'],
+                channel: $returnData['channel'],
+                level: Level::fromValue($level),
+                message: $returnData['message'],
+                context: $returnData['context'],
+                extra: $returnData['extra'],
+                formatted: null,
+            )
+            : $returnData;
     }
 }

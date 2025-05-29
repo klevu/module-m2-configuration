@@ -103,6 +103,14 @@
     <preference for="Klevu\PhpSDK\Provider\BaseUrlsProviderInterface"
                 type="Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider"/>
 
+    <!-- GENERATED TYPES -->
+
+    <type name="Klevu\PhpSDK\Api\Service\Account\AccountFeaturesServiceInterfaceFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">Klevu\PhpSDK\Service\Account\AccountFeaturesService</argument>
+        </arguments>
+    </type>
+
     <!-- VIRTUAL TYPES -->
 
     <virtualType name="Klevu\Configuration\Service\Provider\LogFileNameProvider"
@@ -285,7 +293,7 @@
         </arguments>
     </type>
 
-    <type name="\Klevu\Configuration\Service\Action\RemoveOldApiKeysAction">
+    <type name="Klevu\Configuration\Service\Action\RemoveOldApiKeysAction">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Configuration\Logger\Logger</argument>
         </arguments>
