@@ -32,6 +32,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
  * @covers \Klevu\Configuration\Service\Provider\Stores\Config\AuthKeysCollectionProvider
  * @magentoConfigFixture default/general/single_store_mode/enabled 0
  * @magentoConfigFixture default_store general/single_store_mode/enabled 0
+ * @runTestsInSeparateProcesses
  */
 class AuthKeysCollectionProviderTest extends TestCase
 {
@@ -61,6 +62,8 @@ class AuthKeysCollectionProviderTest extends TestCase
     {
         $this->storeFixturesPool->rollback();
         $this->websiteFixturesPool->rollback();
+
+        $this->removeAuthKeys();
     }
 
     public function testImplements_AuthKeysProviderInterface(): void

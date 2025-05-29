@@ -17,6 +17,7 @@ use Klevu\TestFixtures\Store\StoreTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\IsLoggingEnabledService
@@ -68,9 +69,27 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_IfLogLevelIsMoreThenMinLevel_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 500,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 200,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
 
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
@@ -88,9 +107,27 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_IfLogLevelIsEqualToMinLevel_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 500,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
 
@@ -109,9 +146,32 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_IfLogLevelIsEqualToMinLevel_WhenSSMIsEnabled_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'general/single_store_mode/enabled',
+            value: 1,
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
 
@@ -127,9 +187,27 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsFalse_IfLogLevelIsLessThanMinLevel_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 100,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 400,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
 
@@ -143,9 +221,17 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_IfLogLevelIsNotSet(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
         $this->assertTrue($isLoggingEnabledService->execute(400, $currentStore));
@@ -159,9 +245,23 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_IfLogLevelIsNotSet_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 200,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
         $isLoggingEnabledService = $this->instantiateLoggingEnabled();
         $this->assertTrue($isLoggingEnabledService->execute(400, $currentStore));
@@ -177,9 +277,27 @@ class IsLoggingEnabledServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_ConfigPathIsNotSet(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store');
-        $this->storeScopeProvider->setCurrentStoreByCode($store->getCode());
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_loggingenabled',
+                'name' => 'Test Store IsLoggingEnabledService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_loggingenabled',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 200,
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/developer/log_level_configuration',
+            value: 200,
+            storeCode: 'klevu_test_store_loggingenabled',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_loggingenabled');
+        $this->storeScopeProvider->setCurrentStoreByCode($storeFixture->getCode());
         $currentStore = $this->storeScopeProvider->getCurrentStore();
 
         $isLoggingEnabledService = $this->instantiateLoggingEnabled([

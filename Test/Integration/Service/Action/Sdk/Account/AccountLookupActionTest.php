@@ -355,8 +355,6 @@ class AccountLookupActionTest extends TestCase
             $this->markTestSkipped('Klevu API keys are not set in `dev/tests/integration/phpunit.xml`. Test Skipped');
         }
 
-        $this->expectNotToPerformAssertions();
-
         ConfigFixture::setGlobal(
             path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
             value: $jsApiKey,

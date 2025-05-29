@@ -23,6 +23,9 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ */
 class AccountDetailsActionTest extends TestCase
 {
     /**

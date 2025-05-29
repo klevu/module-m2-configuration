@@ -10,8 +10,10 @@ namespace Klevu\Configuration\Test\Integration\WebApi\Admin;
 
 use Klevu\Configuration\Service\GetBearerTokenInterface;
 use Klevu\Configuration\Service\GetBearerTokenService;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
 use Klevu\TestFixtures\User\UserFixturesPool;
 use Klevu\TestFixtures\User\UserTrait;
+use Magento\Framework\App\Area;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
@@ -19,9 +21,12 @@ use PHPUnit\Framework\TestCase;
 /**
  * @covers \Klevu\Configuration\Service\GetBearerTokenService
  * @magentoAppArea adminhtml
+ * @runTestsInSeparateProcesses
+ * @magentoAppIsolation enabled
  */
 class GetBearerTokenTest extends TestCase
 {
+    use SetAreaTrait;
     use UserTrait;
 
     /**
@@ -36,6 +41,7 @@ class GetBearerTokenTest extends TestCase
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $this->userFixturesPool = $this->objectManager->create(UserFixturesPool::class);
+        $this->setArea(Area::AREA_ADMINHTML);
     }
 
     /**
@@ -47,13 +53,19 @@ class GetBearerTokenTest extends TestCase
         $this->userFixturesPool->rollback();
     }
 
+    /**
+     * @magentoAppArea adminhtml
+     */
     public function testIsInstanceOf_GetBearerTokenInterface(): void
     {
-        $getBearerToken = $this->InstantiateBearerTokenService();
+        $getBearerToken = $this->instantiateBearerTokenService();
 
         $this->assertInstanceOf(GetBearerTokenInterface::class, $getBearerToken);
     }
 
+    /**
+     * @magentoAppArea adminhtml
+     */
     public function testPreferenceFor_GetBearerTokenInterface(): void
     {
         $getBearerToken = $this->objectManager->get(GetBearerTokenInterface::class);
@@ -61,13 +73,25 @@ class GetBearerTokenTest extends TestCase
         $this->assertInstanceOf(GetBearerTokenService::class, $getBearerToken);
     }
 
+    /**
+     * @magentoAppArea adminhtml
+     */
     public function testExecute_ReturnsToken_ForAdminUser(): void
     {
-        $this->createUser();
-        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->createUser(
+            userData: [
+                'firstname' => 'PHPUnit',
+                'lastname' => 'Test',
+                'email' => 'noreply@klevu.com',
+                'username' => 'phpunit_test_user',
+                'password' => 'PHPUnit.Test.123',
+                'key' => 'phpunit_test_user',
+            ],
+        );
+        $userFixture = $this->userFixturesPool->get('phpunit_test_user');
         $this->loginUser(user: $userFixture->get());
 
-        $getBearerToken = $this->InstantiateBearerTokenService();
+        $getBearerToken = $this->instantiateBearerTokenService();
         $bearerToken = $getBearerToken->execute();
 
         $this->assertNotSame('', $bearerToken);
@@ -78,7 +102,7 @@ class GetBearerTokenTest extends TestCase
      *
      * @return GetBearerTokenService
      */
-    private function InstantiateBearerTokenService(?array $arguments = []): GetBearerTokenService
+    private function instantiateBearerTokenService(?array $arguments = []): GetBearerTokenService
     {
         return $this->objectManager->create(
             type: GetBearerTokenService::class,

@@ -12,6 +12,8 @@ use Klevu\Configuration\Service\Provider\StoreScopeProvider;
 use Klevu\Configuration\Service\Provider\StoreScopeProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
+use Magento\Framework\App\Area;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
@@ -24,9 +26,11 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 /**
  * @covers \Klevu\Configuration\Service\Provider\StoreScopeProvider
  * @magentoAppIsolation enabled
+ * @runTestsInSeparateProcesses
  */
 class StoreScopeProviderTest extends TestCase
 {
+    use SetAreaTrait;
     use StoreTrait;
 
     /**
@@ -107,6 +111,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsStore_ForFrontend(): void
     {
+        $this->setArea(Area::AREA_FRONTEND);
+
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
 
@@ -127,6 +133,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testSetCurrentStore_OverridesStoreManager(): void
     {
+        $this->setArea(Area::AREA_FRONTEND);
+
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
 
@@ -146,6 +154,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsAdminStore_WhenAppAreaIsCronTab(): void
     {
+        $this->setArea(Area::AREA_CRONTAB);
+
         $storeScopeProvider = $this->instantiateStoreScopeProvider();
         $currentStore = $storeScopeProvider->getCurrentStore();
 
@@ -168,6 +178,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsNull_WhenAppAreaIsAdmin_StoreParamMissing(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $storeScopeProvider = $this->instantiateStoreScopeProvider();
         $currentStore = $storeScopeProvider->getCurrentStore();
 
@@ -179,6 +191,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsStoreInParams_WhenAppAreaIsAdmin(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
 
@@ -203,6 +217,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsStoreInParams_WhenAppAreaIsAdmin_SingleStoreMode(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         ConfigFixture::setGlobal(
             path: 'general/single_store_mode/enabled',
             value: 1,
@@ -230,6 +246,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testGetCurrentStore_ReturnsNull_WhenAppAreaIsAdmin_InvalidStoreParam(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $mockRequest = $this->getMockBuilder(RequestInterface::class)
             ->disableOriginalConstructor()
             ->getMock();
@@ -250,6 +268,8 @@ class StoreScopeProviderTest extends TestCase
      */
     public function testUnsetCurrentStore_SetsNull(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $this->createStore();
         $store = $this->storeFixturesPool->get('test_store');
 

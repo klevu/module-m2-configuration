@@ -14,6 +14,7 @@ use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use TddWizard\Fixtures\Core\ConfigFixture;
@@ -56,7 +57,7 @@ class MessagesTest extends TestCase
         $request = $this->objectManager->get(RequestInterface::class);
         $request->setParams(['scope' => $scope]);
 
-        $viewModel = $this->instantiateTestObject();
+        $viewModel = $this->instantiateTestObject([]);
         $result = $viewModel->getMessages();
 
         $this->assertArrayHasKey(key: 'warning', array: $result);
@@ -74,8 +75,13 @@ class MessagesTest extends TestCase
             path: 'general/single_store_mode/enabled',
             value: 1,
         );
+        $storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $this->assertTrue(
+            condition: $storeManager->isSingleStoreMode(),
+            message: 'Single store mode should be enabled.',
+        );
 
-        $viewModel = $this->instantiateTestObject();
+        $viewModel = $this->instantiateTestObject([]);
         $result = $viewModel->getMessages();
 
         $this->assertArrayNotHasKey(key: 'warning', array: $result);

@@ -18,9 +18,6 @@ use Klevu\PhpSDK\Provider\BaseUrlsProviderInterface;
 use Klevu\PhpSDK\Provider\Indexing\IndexingVersions;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
-use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -35,16 +32,29 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider
- * @method BaseUrlsProvider instantiateTestObject(array $args = [])
+ * @runTestsInSeparateProcesses
  */
 class BaseUrlsProviderTest extends TestCase
 {
-    use ObjectInstantiationTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
     use StoreTrait;
     use WebsiteTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -76,6 +86,8 @@ class BaseUrlsProviderTest extends TestCase
 
         $this->storeFixturesPool->rollback();
         $this->websiteFixturesPool->rollback();
+
+        $this->deleteExistingUrlsFromConfig();
     }
 
     /**
@@ -535,14 +547,14 @@ class BaseUrlsProviderTest extends TestCase
         /** @var ConfigWriter $configWriter */
         $configWriter = $this->objectManager->get(ConfigWriter::class);
         $urlFixtures = [
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_API => 'api-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_ANALYTICS => 'stats-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_CAT_NAV => 'cn-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_HOSTNAME => 'box-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_INDEXING => 'indexing-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_JS => 'js-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_SEARCH => 'cs-custom.klevu.com',
-            BaseUrlsProvider::CONFIG_XML_PATH_URL_TIERS => 'tiers-custom.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_API => 'api-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_ANALYTICS => 'stats-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_CAT_NAV => 'cn-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_HOSTNAME => 'box-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_INDEXING => 'indexing-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_JS => 'js-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_SEARCH => 'cs-custom-store.klevu.com',
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_TIERS => 'tiers-custom-store.klevu.com',
         ];
         foreach ($urlFixtures as $configPath => $configValue) {
             $configWriter->save(
@@ -605,21 +617,21 @@ class BaseUrlsProviderTest extends TestCase
         $store = $storeManager->getStore('default');
         $scopeProvider->setCurrentScope($store);
 
-        $this->assertSame('api-custom.klevu.com', $baseUrlsProvider->getApiUrl());
-        $this->assertSame('stats-custom.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
-        $this->assertSame('cn-custom.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
-        $this->assertSame('box-custom.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
+        $this->assertSame('api-custom-store.klevu.com', $baseUrlsProvider->getApiUrl());
+        $this->assertSame('stats-custom-store.klevu.com', $baseUrlsProvider->getAnalyticsUrl());
+        $this->assertSame('cn-custom-store.klevu.com', $baseUrlsProvider->getSmartCategoryMerchandisingUrl());
+        $this->assertSame('box-custom-store.klevu.com', $baseUrlsProvider->getMerchantCenterUrl());
         $this->assertSame(
-            'indexing-custom.klevu.com',
+            'indexing-custom-store.klevu.com',
             $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::XML),
         );
         $this->assertSame(
-            'indexing-custom.klevu.com/v2',
+            'indexing-custom-store.klevu.com/v2',
             $baseUrlsProvider->getIndexingUrl(version: IndexingVersions::JSON),
         );
-        $this->assertSame('js-custom.klevu.com', $baseUrlsProvider->getJsUrl());
-        $this->assertSame('cs-custom.klevu.com', $baseUrlsProvider->getSearchUrl());
-        $this->assertSame('tiers-custom.klevu.com', $baseUrlsProvider->getTiersUrl());
+        $this->assertSame('js-custom-store.klevu.com', $baseUrlsProvider->getJsUrl());
+        $this->assertSame('cs-custom-store.klevu.com', $baseUrlsProvider->getSearchUrl());
+        $this->assertSame('tiers-custom-store.klevu.com', $baseUrlsProvider->getTiersUrl());
 
         // Store Scope (outwith website)
         $store = $storeManager->getStore('klevu_config_test_store_1');
@@ -658,5 +670,29 @@ class BaseUrlsProviderTest extends TestCase
         /** @var ReinitableConfig $reinitableConfig */
         $reinitableConfig = $this->objectManager->get(ReinitableConfig::class);
         $reinitableConfig->reinit();
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

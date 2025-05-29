@@ -9,14 +9,28 @@ declare(strict_types=1);
 namespace Klevu\Configuration\Test\Integration\Plugin\Stores\Config\Information;
 
 use Klevu\Configuration\Plugin\Stores\Config\Information\RemoveInheritCheckboxPlugin;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
 use Magento\Config\Block\System\Config\Form\Field as ConfigFormField;
+use Magento\Framework\App\Area;
+use Magento\Framework\App\AreaInterface;
+use Magento\Framework\App\AreaList;
+use Magento\Framework\App\ObjectManager\ConfigLoader;
+use Magento\Framework\App\State;
+use Magento\Framework\Config\Scope;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Interception\PluginList\PluginList;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\TestFramework\Application;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @magentoAppIsolation enabled
+ * @runTestsInSeparateProcesses
+ */
 class RemoveInheritCheckboxPluginTest extends TestCase
 {
+    use SetAreaTrait;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -48,6 +62,8 @@ class RemoveInheritCheckboxPluginTest extends TestCase
      */
     public function testPlugin_InterceptsCallsToTheField_InAdminScope(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $pluginInfo = $this->getSystemConfigPluginInfo();
         $this->assertArrayHasKey($this->pluginName, $pluginInfo);
         $this->assertSame(RemoveInheritCheckboxPlugin::class, $pluginInfo[$this->pluginName]['instance']);

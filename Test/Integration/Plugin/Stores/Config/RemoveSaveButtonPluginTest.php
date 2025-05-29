@@ -9,14 +9,22 @@ declare(strict_types=1);
 namespace Klevu\Configuration\Test\Integration\Plugin\Stores\Config;
 
 use Klevu\Configuration\Plugin\Stores\Config\RemoveSaveButton;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
+use Magento\Framework\App\Area;
 use Magento\Framework\Interception\PluginList\PluginList;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\View\Element\AbstractBlock;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @magentoAppIsolation enabled
+ * @runTestsInSeparateProcesses
+ */
 class RemoveSaveButtonPluginTest extends TestCase
 {
+    use SetAreaTrait;
+
     /**
      * @var ObjectManagerInterface|null
      */
@@ -48,6 +56,8 @@ class RemoveSaveButtonPluginTest extends TestCase
      */
     public function testPlugin_InterceptsCallsToTheField_InAdminScope(): void
     {
+        $this->setArea(Area::AREA_ADMINHTML);
+
         $pluginInfo = $this->getSystemConfigPluginInfo();
         $this->assertArrayHasKey($this->pluginName, $pluginInfo);
         $this->assertSame(RemoveSaveButton::class, $pluginInfo[$this->pluginName]['instance']);

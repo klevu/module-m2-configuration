@@ -13,10 +13,7 @@ use Klevu\Configuration\Service\IsStoreIntegratedServiceInterface;
 use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
-use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
 use Magento\Framework\ObjectManagerInterface;
@@ -27,16 +24,30 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\IsStoreIntegratedService
+ * @runTestsInSeparateProcesses
  */
 class IsStoreIntegratedServiceTest extends TestCase
 {
-    use ObjectInstantiationTrait;
     use SetAuthKeysTrait;
     use StoreTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
     use WebsiteTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -77,8 +88,14 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsFalse_AtWebsiteScope(): void
     {
-        $this->createWebsite();
-        $websiteFixture = $this->websiteFixturesPool->get('test_website');
+        $this->createWebsite(
+            websiteData: [
+                'code' => 'klevu_test_site_storeintegrated',
+                'name' => 'Klevu Test Website IsStoreIntegratedService: ' . __METHOD__,
+                'key' => 'klevu_test_site_storeintegrated',
+            ],
+        );
+        $websiteFixture = $this->websiteFixturesPool->get('klevu_test_site_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $websiteFixture->get());
 
@@ -89,8 +106,15 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsFalse_AtStoreScope_NotIntegrated(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $storeFixture->get());
 
@@ -101,8 +125,15 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsFalse_AtStoreScope_OnlyJsApiKey(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $storeFixture->get());
 
@@ -118,8 +149,15 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsFalse_AtStoreScope_OnlyRestAuthKey(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $storeFixture->get());
 
@@ -135,8 +173,15 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsTrue_AtStoreScope_WhenIntegrated(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $storeFixture->get());
 
@@ -153,12 +198,24 @@ class IsStoreIntegratedServiceTest extends TestCase
 
     public function testExecute_ReturnsTrue_AtStoreScope_WhenIntegratedAtWebsiteScope(): void
     {
-        $this->createWebsite();
-        $websiteFixture = $this->websiteFixturesPool->get('test_website');
-        $this->createStore([
-            'website_id' => $websiteFixture->getId(),
-        ]);
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createWebsite(
+            websiteData: [
+                'code' => 'klevu_test_site_storeintegrated',
+                'name' => 'Klevu Test Website IsStoreIntegratedService: ' . __METHOD__,
+                'key' => 'klevu_test_site_storeintegrated',
+            ],
+        );
+        $websiteFixture = $this->websiteFixturesPool->get('klevu_test_site_storeintegrated');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'website_id' => $websiteFixture->getId(),
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $websiteFixture->get());
 
@@ -180,8 +237,15 @@ class IsStoreIntegratedServiceTest extends TestCase
      */
     public function testExecute_ReturnsTrue_AtStoreScope_WhenIntegrated_SingleStoreMode(): void
     {
-        $this->createStore();
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->setCurrentScope(scope: $storeFixture->get());
 
@@ -208,8 +272,15 @@ class IsStoreIntegratedServiceTest extends TestCase
     public function testExecute_ReturnsTrue_AtWebsiteScope_WhenIntegrated_SingleStoreMode(): void
     {
         $this->markTestSkipped('Skipped until website integration is possible');
-        $this->createStore(); // @phpstan-ignore-line - see test skipped
-        $storeFixture = $this->storeFixturesPool->get('test_store');
+        $this->createStore( // @phpstan-ignore-line - see test skipped
+            storeData: [
+                'code' => 'klevu_test_store_storeintegrated',
+                'name' => 'Test Store IsStoreIntegratedService: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_storeintegrated',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_storeintegrated');
         $store = $storeFixture->get();
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $storeManager = $this->objectManager->get(StoreManagerInterface::class);
@@ -236,5 +307,29 @@ class IsStoreIntegratedServiceTest extends TestCase
         /** @var IsStoreIntegratedService $service */
         $service = $this->instantiateTestObject();
         $this->assertTrue(condition: $service->execute());
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

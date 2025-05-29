@@ -15,12 +15,15 @@ use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\CurrentScopeTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Provider\ApiKeyProvider
@@ -85,8 +88,16 @@ class ApiKeyProviderTest extends TestCase
 
     public function testGet_ReturnsNull_WhenStoreConfigNotSet(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store')->get();
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_apikeyprovider',
+                'name' => 'Klevu Test Store ApiKeyProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_apikeyprovider',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_apikeyprovider');
+        $store = $storeFixture->get();
         $currentScope = $this->createCurrentScope($store);
 
         $apiKeyProvider = $this->instantiateApiKeyProvider();
@@ -102,8 +113,27 @@ class ApiKeyProviderTest extends TestCase
      */
     public function testGet_ReturnsJsApiKey_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store')->get();
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_apikeyprovider',
+                'name' => 'Klevu Test Store ApiKeyProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_apikeyprovider',
+            ],
+        );
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'not-this-one',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'store-js-api-key',
+            storeCode: 'klevu_test_store_apikeyprovider',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_apikeyprovider');
+        $store = $storeFixture->get();
         $currentScope = $this->createCurrentScope($store);
 
         $apiKeyProvider = $this->instantiateApiKeyProvider();
@@ -144,8 +174,49 @@ class ApiKeyProviderTest extends TestCase
      */
     public function testGet_ReturnsJsApiKey_ForWebsite(): void
     {
-        $this->createWebsite();
-        $website = $this->websiteFixturesPool->get('test_website')->get();
+        $this->createWebsite(
+            websiteData: [
+                'code' => 'klevu_test_site_apikeyprovider',
+                'name' => 'Klevu Test Website ApiKeyProvider: ' . __METHOD__,
+                'key' => 'klevu_test_site_apikeyprovider',
+            ],
+        );
+        $websiteFixture = $this->websiteFixturesPool->get('klevu_test_site_apikeyprovider');
+        $website = $websiteFixture->get();
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'not-this-one',
+        );
+
+        /** @var WriterInterface $configWriter */
+        $configWriter = $this->objectManager->get(WriterInterface::class);
+        $configWriter->save(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'site-js-api-key',
+            scope: ScopeInterface::SCOPE_WEBSITES,
+            scopeId: (int)$website->getId(),
+        );
+
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_apikeyprovider',
+                'name' => 'Klevu Test Store ApiKeyProvider: ' . __METHOD__,
+                'website_id' => (int)$website->getId(),
+                'is_active' => true,
+                'key' => 'klevu_test_store_apikeyprovider',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_apikeyprovider');
+        $store = $storeFixture->get();
+
+        $configWriter->save(
+            path: 'klevu_configuration/auth_keys/js_api_key',
+            value: 'store-js-api-key',
+            scope: ScopeInterface::SCOPE_STORES,
+            scopeId: (int)$store->getId(),
+        );
+
         $currentScope = $this->createCurrentScope($website);
 
         $apiKeyProvider = $this->instantiateApiKeyProvider();

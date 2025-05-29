@@ -30,6 +30,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * @covers \Klevu\Configuration\Ui\DataProvider\Integration\Listing\StoresDataProvider
+ * @runTestsInSeparateProcesses
  */
 class StoresDataProviderTest extends TestCase
 {

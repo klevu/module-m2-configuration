@@ -15,10 +15,7 @@ use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProv
 use Klevu\Configuration\Service\Provider\Stores\Config\OldAuthKeysCollectionProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
-use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -27,17 +24,29 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @covers RemoveOldApiKeysAction::class
- * @method RemoveOldApiKeysActionInterface instantiateTestObject(?array $arguments = null)
- * @method RemoveOldApiKeysActionInterface instantiateTestObjectFromInterface(?array $arguments = null)
+ * @runTestsInSeparateProcesses
  */
 class RemoveOldApiKeysActionTest extends TestCase
 {
-    use ObjectInstantiationTrait;
     use StoreTrait;
     use SetAuthKeysTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -134,5 +143,29 @@ class RemoveOldApiKeysActionTest extends TestCase
     public function testExecute_RemoveOldApiKeys_ForAllStoresUnderIntegratedWebsite(): void
     {
         $this->markTestIncomplete('Complete once support for channels has been implemented in indexing');
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

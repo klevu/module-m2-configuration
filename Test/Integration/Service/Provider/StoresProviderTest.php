@@ -26,17 +26,29 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers StoresProvider
- * @method StoresProviderInterface instantiateTestObject(?array $arguments = null)
- * @method StoresProviderInterface instantiateTestObjectFromInterface(?array $arguments = null)
+ * @runTestsInSeparateProcesses
  */
 class StoresProviderTest extends TestCase
 {
-    use ObjectInstantiationTrait;
     use SetAuthKeysTrait;
     use StoreTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -174,6 +186,9 @@ class StoresProviderTest extends TestCase
 
         $provider = $this->instantiateTestObject();
         $result = $provider->get('klevu-js-api-key');
+
+        $this->removeAuthKeys();
+
         $this->assertArrayHasKey(key: $defaultStore->getId(), array: $result);
         $filteredResult = array_filter(
             array: $result,
@@ -182,5 +197,29 @@ class StoresProviderTest extends TestCase
             ),
         );
         $this->assertCount(expectedCount: 1, haystack: $filteredResult);
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

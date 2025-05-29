@@ -18,13 +18,16 @@ use Klevu\TestFixtures\Traits\CurrentScopeTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Provider\AuthKeyProvider
@@ -93,15 +96,26 @@ class AuthKeyProviderTest extends TestCase
 
     public function testGet_ReturnsNull_WhenStoreConfigNotSet(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store')->get();
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_authkeyprovider',
+                'name' => 'Test Store AuthKeyProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_authkeyprovider',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_authkeyprovider');
+        $store = $storeFixture->get();
 
         $currentScope = $this->createCurrentScope($store);
 
         $apiKeyProvider = $this->instantiateAuthKeyProvider();
         $apiKey = $apiKeyProvider->get($currentScope);
 
-        $this->assertNull($apiKey);
+        $this->assertNull(
+            actual: $apiKey,
+            message: 'Expected null; received: ' . var_export($apiKey, true),
+        );
     }
 
     /**
@@ -111,9 +125,27 @@ class AuthKeyProviderTest extends TestCase
      */
     public function testGet_ReturnsRestAuthKey_ForStore(): void
     {
-        $this->createStore();
-        $store = $this->storeFixturesPool->get('test_store')->get();
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_authkeyprovider',
+                'name' => 'Klevu Test Store AuthKeyProvider: ' . __METHOD__,
+                'is_active' => true,
+                'key' => 'klevu_test_store_authkeyprovider',
+            ],
+        );
 
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'not-this-one',
+        );
+        ConfigFixture::setForStore(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'store-rest-auth-key',
+            storeCode: 'klevu_test_store_authkeyprovider',
+        );
+
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_authkeyprovider');
+        $store = $storeFixture->get();
         $currentScope = $this->createCurrentScope($store);
 
         $authKeyProvider = $this->instantiateAuthKeyProvider();
@@ -156,8 +188,48 @@ class AuthKeyProviderTest extends TestCase
      */
     public function testGet_ReturnsRestAuthKey_ForWebsite(): void
     {
-        $this->createWebsite();
-        $website = $this->websiteFixturesPool->get('test_website')->get();
+        $this->createWebsite(
+            websiteData: [
+                'code' => 'klevu_test_site_authkeyprovider',
+                'name' => 'Klevu Test Website AuthKeyProvider: ' . __METHOD__,
+                'key' => 'klevu_test_site_authkeyprovider',
+            ],
+        );
+        $websiteFixture = $this->websiteFixturesPool->get('klevu_test_site_authkeyprovider');
+        $website = $websiteFixture->get();
+
+        ConfigFixture::setGlobal(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'not-this-one',
+        );
+
+        /** @var WriterInterface $configWriter */
+        $configWriter = $this->objectManager->get(WriterInterface::class);
+        $configWriter->save(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'site-rest-auth-key',
+            scope: ScopeInterface::SCOPE_WEBSITES,
+            scopeId: (int)$website->getId(),
+        );
+
+        $this->createStore(
+            storeData: [
+                'code' => 'klevu_test_store_authkeyprovider',
+                'name' => 'Klevu Test Store AuthKeyProvider: ' . __METHOD__,
+                'website_id' => (int)$website->getId(),
+                'is_active' => true,
+                'key' => 'klevu_test_store_authkeyprovider',
+            ],
+        );
+        $storeFixture = $this->storeFixturesPool->get('klevu_test_store_authkeyprovider');
+        $store = $storeFixture->get();
+
+        $configWriter->save(
+            path: 'klevu_configuration/auth_keys/rest_auth_key',
+            value: 'store-rest-auth-key',
+            scope: ScopeInterface::SCOPE_STORES,
+            scopeId: (int)$store->getId(),
+        );
 
         $currentScope = $this->createCurrentScope($website);
 

@@ -12,37 +12,58 @@ use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\Configuration\Ui\DataProvider\Integration\Form\WizardDataProvider;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
+use Klevu\TestFixtures\Traits\SetAreaTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
 use Klevu\TestFixtures\User\UserFixturesPool;
 use Klevu\TestFixtures\User\UserTrait;
+use Magento\Framework\App\Area;
+use Magento\Framework\App\AreaInterface;
+use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager\ConfigLoader;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\State;
+use Magento\Framework\Config\Scope;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\View\Element\UiComponent\DataProvider\DataProviderInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\TestFramework\Application;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers WizardDataProvider::class
- * @method DataProviderInterface instantiateTestObject(?array $arguments = null)
- * @method DataProviderInterface instantiateTestObjectFromInterface(?array $arguments = null)
  * @magentoAppArea adminhtml
+ * @runTestsInSeparateProcesses
  */
 class WizardDataProviderTest extends TestCase
 {
-    use ObjectInstantiationTrait;
+    use SetAreaTrait;
     use SetAuthKeysTrait;
     use StoreTrait;
-    use TestImplementsInterfaceTrait;
     use UserTrait;
 
+    /**
+     * @var string|null
+     */
+    private ?string $implementationFqcn = null;
+    /**
+     * @var string|null
+     */
+    private ?string $interfaceFqcn = null;
+    /**
+     * @var mixed[]|null
+     */
+    private ?array $constructorArgumentDefaults = null;
+    /**
+     * @var string|null
+     */
+    private ?string $implementationForVirtualType = null;
     /**
      * @var ObjectManagerInterface|null
      */
@@ -67,6 +88,7 @@ class WizardDataProviderTest extends TestCase
             'requestFieldName' => 'scope_id',
         ];
         $this->objectManager = Bootstrap::getObjectManager();
+        $this->setArea(Area::AREA_ADMINHTML);
 
         $this->userFixturesPool = $this->objectManager->get(UserFixturesPool::class);
         $this->storeFixturesPool = $this->objectManager->get(StoreFixturesPool::class);
@@ -103,8 +125,17 @@ class WizardDataProviderTest extends TestCase
             value: 1,
         );
 
-        $this->createUser();
-        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->createUser(
+            userData: [
+                'firstname' => 'PHPUnit',
+                'lastname' => 'Test',
+                'email' => 'noreply@klevu.com',
+                'username' => 'phpunit_test_user',
+                'password' => 'PHPUnit.Test.123',
+                'key' => 'phpunit_test_user',
+            ],
+        );
+        $userFixture = $this->userFixturesPool->get('phpunit_test_user');
         $this->loginUser(user: $userFixture->get());
 
         /** @var RequestInterface $request */
@@ -150,7 +181,6 @@ class WizardDataProviderTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
-     * @group wip
      */
     public function testGetData_LoggerScopeIdMatchesScopeId_NotInSingleStoreMode(): void
     {
@@ -162,8 +192,17 @@ class WizardDataProviderTest extends TestCase
         $this->createStore();
         $storeFixture = $this->storeFixturesPool->get('test_store');
 
-        $this->createUser();
-        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->createUser(
+            userData: [
+                'firstname' => 'PHPUnit',
+                'lastname' => 'Test',
+                'email' => 'noreply@klevu.com',
+                'username' => 'phpunit_test_user',
+                'password' => 'PHPUnit.Test.123',
+                'key' => 'phpunit_test_user',
+            ],
+        );
+        $userFixture = $this->userFixturesPool->get('phpunit_test_user');
         $this->loginUser(user: $userFixture->get());
 
         /** @var RequestInterface $request */
@@ -224,8 +263,17 @@ class WizardDataProviderTest extends TestCase
             restAuthKey: 'klevu_rest_auth_key',
         );
 
-        $this->createUser();
-        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->createUser(
+            userData: [
+                'firstname' => 'PHPUnit',
+                'lastname' => 'Test',
+                'email' => 'noreply@klevu.com',
+                'username' => 'phpunit_test_user',
+                'password' => 'PHPUnit.Test.123',
+                'key' => 'phpunit_test_user',
+            ],
+        );
+        $userFixture = $this->userFixturesPool->get('phpunit_test_user');
         $this->loginUser(user: $userFixture->get());
 
         /** @var RequestInterface $request */
@@ -275,8 +323,17 @@ class WizardDataProviderTest extends TestCase
             restAuthKey: 'klevu_rest_auth_key',
         );
 
-        $this->createUser();
-        $userFixture = $this->userFixturesPool->get('test_user');
+        $this->createUser(
+            userData: [
+                'firstname' => 'PHPUnit',
+                'lastname' => 'Test',
+                'email' => 'noreply@klevu.com',
+                'username' => 'phpunit_test_user',
+                'password' => 'PHPUnit.Test.123',
+                'key' => 'phpunit_test_user',
+            ],
+        );
+        $userFixture = $this->userFixturesPool->get('phpunit_test_user');
         $this->loginUser(user: $userFixture->get());
 
         /** @var RequestInterface $request */
@@ -314,5 +371,29 @@ class WizardDataProviderTest extends TestCase
             actual: $result['messages'],
             message: 'messages',
         );
+    }
+
+    /**
+     * @param mixed[]|null $arguments
+     *
+     * @return object
+     * @throws \LogicException
+     *
+     * @todo Reinstate object instantiation and interface traits. Removed as causing serialization of Closure error
+     *  in phpunit Standard input code
+     */
+    private function instantiateTestObject(
+        ?array $arguments = null,
+    ): object {
+        if (!$this->implementationFqcn) {
+            throw new \LogicException('Cannot instantiate test object: no implementationFqcn defined');
+        }
+        if (null === $arguments) {
+            $arguments = $this->constructorArgumentDefaults;
+        }
+
+        return (null === $arguments)
+            ? $this->objectManager->get($this->implementationFqcn)
+            : $this->objectManager->create($this->implementationFqcn, $arguments);
     }
 }

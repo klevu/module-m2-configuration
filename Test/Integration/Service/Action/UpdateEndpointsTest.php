@@ -10,12 +10,14 @@ namespace Klevu\Configuration\Test\Integration\Service\Action;
 
 use Klevu\Configuration\Service\Action\UpdateEndpoints;
 use Klevu\Configuration\Service\Action\UpdateEndpointsInterface;
+use Klevu\Configuration\Service\Provider\Sdk\BaseUrlsProvider;
 use Klevu\PhpSDK\Model\Account;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Website\WebsiteFixturesPool;
 use Klevu\TestFixtures\Website\WebsiteTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\Writer;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -26,6 +28,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @covers \Klevu\Configuration\Service\Action\UpdateEndpoints
+ * @runTestsInSeparateProcesses
  */
 class UpdateEndpointsTest extends TestCase
 {
@@ -54,6 +57,28 @@ class UpdateEndpointsTest extends TestCase
     {
         $this->storeFixturesPool->rollback();
         $this->websiteFixturesPool->rollback();
+
+        // App and DB Isolation being flaky; warning: will clear any custom urls in test database
+        $urlsToClear = [
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_ANALYTICS,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_API,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_CAT_NAV,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_HOSTNAME,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_INDEXING,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_JS,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_SEARCH,
+            BaseUrlsProvider::CONFIG_XML_PATH_URL_TIERS,
+        ];
+
+        /** @var Writer $configWriter */
+        $configWriter = $this->objectManager->get(Writer::class);
+        foreach ($urlsToClear as $path) {
+            $configWriter->delete(
+                path: $path,
+                scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                scopeId: 0,
+            );
+        }
     }
 
     public function testImplements_SaveApiKeysActionInterface(): void
@@ -117,6 +142,16 @@ class UpdateEndpointsTest extends TestCase
             ScopeInterface::SCOPE_STORES,
         );
         $this->assertNull(actual: $indexingEndpoint);
+
+        $tiersEndpoint = $scopeConfig->getValue(
+            UpdateEndpoints::CONFIG_XML_PATH_URL_TIERS,
+            (int)$store->getId(),
+            ScopeInterface::SCOPE_STORES,
+        );
+        $this->assertNull(
+            actual: $tiersEndpoint,
+            message: 'Tiers endpoint should not be saved despite being valid',
+        );
     }
 
     /**
@@ -132,33 +167,47 @@ class UpdateEndpointsTest extends TestCase
             ->getMock();
         $mockAccount->expects($this->once())
             ->method('getIndexingUrl')
-            ->willReturn('indexing.url');
+            ->willReturn('indexing-store.url');
         $mockAccount->expects($this->once())
             ->method('getSearchUrl')
-            ->willReturn('search.url');
+            ->willReturn('search-store.url');
         $mockAccount->expects($this->once())
             ->method('getSmartCategoryMerchandisingUrl')
-            ->willReturn('smart-category-merchandising.url');
+            ->willReturn('smart-category-merchandising-store.url');
         $mockAccount->expects($this->once())
             ->method('getAnalyticsUrl')
-            ->willReturn('analytics.url');
+            ->willReturn('analytics-store.url');
         $mockAccount->expects($this->once())
             ->method('getJsUrl')
-            ->willReturn('js.url');
+            ->willReturn('js-store.url');
         $mockAccount->expects($this->once())
             ->method('getTiersUrl')
-            ->willReturn('tiers.url');
+            ->willReturn('tiers-store.url');
 
         $action = $this->instantiateUpdateEndpointsAction();
         $action->execute($mockAccount, (int)$store->getId(), ScopeInterface::SCOPE_STORES);
 
+        /** @var ScopeConfigInterface $scopeConfig */
         $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
         $indexingEndpoint = $scopeConfig->getValue(
             UpdateEndpoints::CONFIG_XML_PATH_URL_INDEXING,
             ScopeInterface::SCOPE_STORES,
             (int)$store->getId(),
         );
-        $this->assertSame(expected: 'indexing.url', actual: $indexingEndpoint);
+        $this->assertSame(
+            expected: 'indexing-store.url',
+            actual: $indexingEndpoint,
+        );
+
+        $indexingEndpointGlobal = $scopeConfig->getValue(
+            UpdateEndpoints::CONFIG_XML_PATH_URL_SEARCH,
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+        );
+        $this->assertNotEquals(
+            expected: 'indexing-store.url',
+            actual: $indexingEndpointGlobal,
+            message: 'Indexing endpoint should not be saved globally',
+        );
     }
 
     /**
@@ -178,22 +227,22 @@ class UpdateEndpointsTest extends TestCase
             ->getMock();
         $mockAccount->expects($this->once())
             ->method('getIndexingUrl')
-            ->willReturn('indexing.url');
+            ->willReturn('indexing-ssm.url');
         $mockAccount->expects($this->once())
             ->method('getSearchUrl')
-            ->willReturn('search.url');
+            ->willReturn('search-ssm.url');
         $mockAccount->expects($this->once())
             ->method('getSmartCategoryMerchandisingUrl')
-            ->willReturn('smart-category-merchandising.url');
+            ->willReturn('smart-category-merchandising-ssm.url');
         $mockAccount->expects($this->once())
             ->method('getAnalyticsUrl')
-            ->willReturn('analytics.url');
+            ->willReturn('analytics-ssm.url');
         $mockAccount->expects($this->once())
             ->method('getJsUrl')
-            ->willReturn('js.url');
+            ->willReturn('js-ssm.url');
         $mockAccount->expects($this->once())
             ->method('getTiersUrl')
-            ->willReturn('tiers.url');
+            ->willReturn('tiers-ssm.url');
 
         $action = $this->instantiateUpdateEndpointsAction();
         $action->execute($mockAccount, (int)$store->getId(), ScopeInterface::SCOPE_STORES);
@@ -204,7 +253,7 @@ class UpdateEndpointsTest extends TestCase
             ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
             null,
         );
-        $this->assertSame(expected: 'indexing.url', actual: $indexingEndpoint);
+        $this->assertSame(expected: 'indexing-ssm.url', actual: $indexingEndpoint);
     }
 
     /**
