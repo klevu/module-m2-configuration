@@ -5,6 +5,26 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
+    <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Information\CronInformation"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset">
+        <arguments>
+            <argument name="blockName" xsi:type="string">klevu_cron_information</argument>
+            <argument name="template"
+                      xsi:type="string">Klevu_Configuration::system/config/information/cron_information.phtml</argument>
+            <argument name="viewModel"
+                      xsi:type="object">Klevu\Configuration\ViewModel\Config\Information\CronInformation</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Klevu\Configuration\ViewModel\Config\Information\ModuleVersions">
+        <arguments>
+            <argument name="composerPackageIdentifiers" xsi:type="array">
+                <item name="klevu_module_m2_search" xsi:type="string"><![CDATA[klevu/module-m2-search]]></item>
+                <item name="klevu_php_sdk" xsi:type="string"><![CDATA[klevu/php-sdk]]></item>
+            </argument>
+        </arguments>
+    </type>
+
     <virtualType name="Klevu\Configuration\Block\Adminhtml\Config\Information\ModuleVersions"
                  type="Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset">
         <arguments>

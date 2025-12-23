@@ -23,4 +23,9 @@ interface StoresProviderInterface
      * @return array<string, StoreInterface[]>
      */
     public function getAllIntegratedStores(): array;
+
+    /**
+     * @return void
+     */
+    public function cleanCache(): void;
 }

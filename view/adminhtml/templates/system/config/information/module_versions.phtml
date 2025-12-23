@@ -25,34 +25,58 @@ $escaper = $block->getEscaper();
     <?php endforeach; ?>
 <?php endforeach; ?>
 
+<?php $libraryVersions = $viewModel->getLibraryVersions(); ?>
+<?php if ($libraryVersions): ?>
+    <table class="klevu-module-versions">
+        <thead>
+            <tr>
+                <th scope="col"><?= $escaper->escapeHtml(__('Package')->render()) ?></th>
+                <th scope="col"><?= $escaper->escapeHtml(__('Version')->render()) ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($libraryVersions as $package => $version): ?>
+                <tr>
+                    <td>
+                        <span><?= $escaper->escapeHtml($package) ?></span>
+                    </td>
+                    <td>
+                        <span><?= $escaper->escapeHtml($version) ?></span>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+<?php endif; ?>
+
 <?php if ($viewModel->hasVersions()): ?>
     <table class="klevu-module-versions">
         <thead>
-        <tr>
-            <th scope="col"><?= $escaper->escapeHtml(__('Module')->render()) ?></th>
-            <th scope="col"><?= $escaper->escapeHtml(__('Version')->render()) ?></th>
-        </tr>
+            <tr>
+                <th scope="col"><?= $escaper->escapeHtml(__('Module')->render()) ?></th>
+                <th scope="col"><?= $escaper->escapeHtml(__('Version')->render()) ?></th>
+            </tr>
         </thead>
         <tbody>
-        <?php foreach ($viewModel->getVersions() as $module => $version): ?>
-            <tr>
-                <td>
-                    <span><?= $escaper->escapeHtml($module) ?></span>
-                </td>
-                <td>
-                    <span><?= $escaper->escapeHtml($version) ?></span>
-                </td>
-            </tr>
-        <?php endforeach; ?>
+            <?php foreach ($viewModel->getVersions() as $module => $version): ?>
+                <tr>
+                    <td>
+                        <span><?= $escaper->escapeHtml($module) ?></span>
+                    </td>
+                    <td>
+                        <span><?= $escaper->escapeHtml($version) ?></span>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
         <tfoot>
-        <tr>
-            <th scope="row" colspan="2">
-                <?= $escaper->escapeHtml(
-                    __('All enabled Klevu modules and the currently installed version.')->render(),
-                ) ?>
-            </th>
-        </tr>
+            <tr>
+                <th scope="row" colspan="2">
+                    <?= $escaper->escapeHtml(
+                        __('All enabled Klevu modules and the currently installed version.')->render(),
+                    ) ?>
+                </th>
+            </tr>
         </tfoot>
     </table>
     <style>

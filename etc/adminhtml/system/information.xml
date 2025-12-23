@@ -134,6 +134,25 @@
         </field>
     </group>
 
+    <group id="cron_information"
+           translate="label"
+           sortOrder="70"
+           showInDefault="1"
+           showInWebsite="1"
+           showInStore="1">
+          <label>Cron Information</label>
+          <attribute type="expanded">0</attribute>
+          <frontend_model>Magento\Config\Block\System\Config\Form\Fieldset</frontend_model>
+
+          <field id="cron_status" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <!--
+                frontend_model is a virtualType based on \Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset
+                see etc/adminhtml/di.xml for config
+                -->
+                <frontend_model>Klevu\Configuration\Block\Adminhtml\Config\Information\CronInformation</frontend_model>
+          </field>
+    </group>
+
     <group id="knowledge_base"
            translate="label"
            sortOrder="90"

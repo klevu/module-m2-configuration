@@ -13,10 +13,7 @@ use Klevu\Configuration\Service\Provider\StoresProvider;
 use Klevu\Configuration\Service\Provider\StoresProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
-use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\SetAuthKeysTrait;
-use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
-use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -197,6 +194,182 @@ class StoresProviderTest extends TestCase
             ),
         );
         $this->assertCount(expectedCount: 1, haystack: $filteredResult);
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     */
+    public function testGetAllIntegratedStores(): void
+    {
+        $this->createStore(
+            storeData: [
+                'key' => 'klevu_test_storesprovider_1',
+                'code' => 'klevu_test_storesprovider_1',
+                'name' => 'Klevu Test: Stores Provider (1)',
+                'enabled' => true,
+            ],
+        );
+        $storeFixture1 = $this->storeFixturesPool->get('klevu_test_storesprovider_1');
+        $scopeProvider1 = $this->objectManager->create(ScopeProviderInterface::class);
+        $scopeProvider1->setCurrentScope(scope: $storeFixture1->get());
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider1,
+            jsApiKey: 'klevu-1234567890',
+            restAuthKey: 'ABCDE1234567890',
+            removeApiKeys: false,
+        );
+
+        $this->createStore(
+            storeData: [
+                'key' => 'klevu_test_storesprovider_2',
+                'code' => 'klevu_test_storesprovider_2',
+                'name' => 'Klevu Test: Stores Provider (2)',
+                'is_active' => false,
+            ],
+        );
+        $storeFixture2 = $this->storeFixturesPool->get('klevu_test_storesprovider_2');
+        $scopeProvider2 = $this->objectManager->create(ScopeProviderInterface::class);
+        $scopeProvider2->setCurrentScope(scope: $storeFixture2->get());
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider2,
+            jsApiKey: 'klevu-9876543210',
+            restAuthKey: 'ABCDE9876543210',
+            removeApiKeys: false,
+        );
+
+        $this->createStore(
+            storeData: [
+                'key' => 'klevu_test_storesprovider_3',
+                'code' => 'klevu_test_storesprovider_3',
+                'name' => 'Klevu Test: Stores Provider (3)',
+                'is_active' => true,
+            ],
+        );
+
+        /** @var StoresProviderInterface $storesProvider */
+        $storesProvider = $this->instantiateTestObject();
+
+        $result = $storesProvider->getAllIntegratedStores();
+
+        $this->assertArrayHasKey(
+            key: 'klevu-1234567890',
+            array: $result,
+        );
+        $this->assertIsArray($result['klevu-1234567890']);
+        $this->assertCount(
+            expectedCount: 1,
+            haystack: $result['klevu-1234567890'],
+        );
+        $this->assertArrayHasKey(
+            key: 0,
+            array: $result['klevu-1234567890'],
+        );
+        $this->assertInstanceOf(
+            expected: StoreInterface::class,
+            actual: $result['klevu-1234567890'][0],
+        );
+        $this->assertSame(
+            expected: 'klevu_test_storesprovider_1',
+            actual: $result['klevu-1234567890'][0]->getCode(),
+        );
+
+        $this->assertArrayHasKey(
+            key: 'klevu-9876543210',
+            array: $result,
+        );
+        $this->assertIsArray($result['klevu-9876543210']);
+        $this->assertCount(
+            expectedCount: 1,
+            haystack: $result['klevu-9876543210'],
+        );
+        $this->assertArrayHasKey(
+            key: 0,
+            array: $result['klevu-9876543210'],
+        );
+        $this->assertInstanceOf(
+            expected: StoreInterface::class,
+            actual: $result['klevu-9876543210'][0],
+        );
+        $this->assertSame(
+            expected: 'klevu_test_storesprovider_2',
+            actual: $result['klevu-9876543210'][0]->getCode(),
+        );
+
+        $storeFixture3 = $this->storeFixturesPool->get('klevu_test_storesprovider_3');
+        $scopeProvider3 = $this->objectManager->create(ScopeProviderInterface::class);
+        $scopeProvider3->setCurrentScope(scope: $storeFixture3->get());
+        $this->setAuthKeys(
+            scopeProvider: $scopeProvider3,
+            jsApiKey: 'klevu-1234567890',
+            restAuthKey: 'ABCDE1234567890',
+            removeApiKeys: false,
+        );
+
+        $resultAfterStoreFixture3 = $storesProvider->getAllIntegratedStores();
+
+        $this->assertSame(
+            expected: $result,
+            actual: $resultAfterStoreFixture3,
+        );
+
+        $storesProvider->cleanCache();
+        $resultAfterCleanCache = $storesProvider->getAllIntegratedStores();
+
+        $this->assertArrayHasKey(
+            key: 'klevu-1234567890',
+            array: $result,
+        );
+        $this->assertIsArray($resultAfterCleanCache['klevu-1234567890']);
+        $this->assertCount(
+            expectedCount: 2,
+            haystack: $resultAfterCleanCache['klevu-1234567890'],
+        );
+        $this->assertArrayHasKey(
+            key: 0,
+            array: $resultAfterCleanCache['klevu-1234567890'],
+        );
+        $this->assertInstanceOf(
+            expected: StoreInterface::class,
+            actual: $resultAfterCleanCache['klevu-1234567890'][0],
+        );
+        $this->assertSame(
+            expected: 'klevu_test_storesprovider_1',
+            actual: $resultAfterCleanCache['klevu-1234567890'][0]->getCode(),
+        );
+        $this->assertArrayHasKey(
+            key: 1,
+            array: $resultAfterCleanCache['klevu-1234567890'],
+        );
+        $this->assertInstanceOf(
+            expected: StoreInterface::class,
+            actual: $resultAfterCleanCache['klevu-1234567890'][1],
+        );
+        $this->assertSame(
+            expected: 'klevu_test_storesprovider_3',
+            actual: $resultAfterCleanCache['klevu-1234567890'][1]->getCode(),
+        );
+
+        $this->assertArrayHasKey(
+            key: 'klevu-9876543210',
+            array: $resultAfterCleanCache,
+        );
+        $this->assertIsArray($resultAfterCleanCache['klevu-9876543210']);
+        $this->assertCount(
+            expectedCount: 1,
+            haystack: $resultAfterCleanCache['klevu-9876543210'],
+        );
+        $this->assertArrayHasKey(
+            key: 0,
+            array: $resultAfterCleanCache['klevu-9876543210'],
+        );
+        $this->assertInstanceOf(
+            expected: StoreInterface::class,
+            actual: $resultAfterCleanCache['klevu-9876543210'][0],
+        );
+        $this->assertSame(
+            expected: 'klevu_test_storesprovider_2',
+            actual: $resultAfterCleanCache['klevu-9876543210'][0]->getCode(),
+        );
     }
 
     /**
