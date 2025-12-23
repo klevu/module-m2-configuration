@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Klevu\Configuration\ViewModel\Config\Information;
 
+use Composer\InstalledVersions as ComposerInstalledVersions;
 use Klevu\Configuration\Service\Provider\Modules\KlevuModuleListProviderInterface;
 use Klevu\Configuration\Service\Provider\Modules\VersionProviderInterface;
 use Magento\Framework\Phrase;
@@ -23,6 +24,10 @@ class ModuleVersions implements ModuleVersionsInterface
      */
     private readonly VersionProviderInterface $versionProvider;
     /**
+     * @var array
+     */
+    private array $composerPackageIdentifiers = [];
+    /**
      * @var string[]|null
      */
     private ?array $moduleVersions = null;
@@ -30,13 +35,18 @@ class ModuleVersions implements ModuleVersionsInterface
     /**
      * @param KlevuModuleListProviderInterface $klevuModuleListProvider
      * @param VersionProviderInterface $versionProvider
+     * @param string[] $composerPackageIdentifiers
      */
     public function __construct(
         KlevuModuleListProviderInterface $klevuModuleListProvider,
         VersionProviderInterface $versionProvider,
+        array $composerPackageIdentifiers = [],
     ) {
         $this->klevuModuleListProvider = $klevuModuleListProvider;
         $this->versionProvider = $versionProvider;
+        $this->composerPackageIdentifiers = array_unique(
+            array: array_map('strval', $composerPackageIdentifiers),
+        );
     }
 
     /**
@@ -54,15 +64,25 @@ class ModuleVersions implements ModuleVersionsInterface
      */
     public function getMessages(): array
     {
-        if ($this->hasVersions()) {
-            return [];
+        $messages = [];
+
+        if (!$this->hasVersions()) {
+            $messages[] = [
+                'warning' => [
+                    __('Could not retrieve list of modules. Please check using CLI.'),
+                ],
+            ];
         }
 
-        return [
-            'warning' => [
-                __('Could not retrieve list of modules. Please check using CLI.'),
-            ],
-        ];
+        if (null === $this->getLibraryVersions()) {
+            $messages[] = [
+                'warning' => [
+                    __('Could not retrieve library versions. Composer information is not available.'),
+                ],
+            ];
+        }
+
+        return $messages;
     }
 
     /**
@@ -96,5 +116,24 @@ class ModuleVersions implements ModuleVersionsInterface
         ksort($this->moduleVersions);
 
         return $this->moduleVersions;
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    public function getLibraryVersions(): ?array
+    {
+        if (!class_exists(ComposerInstalledVersions::class)) {
+            return null;
+        }
+
+        $return = [];
+        foreach ($this->composerPackageIdentifiers as $packageIdentifier) {
+            $return[$packageIdentifier] = ComposerInstalledVersions::isInstalled($packageIdentifier)
+                ? ComposerInstalledVersions::getPrettyVersion($packageIdentifier)
+                : __('Not installed');
+        }
+
+        return array_map('strval', $return);
     }
 }

@@ -86,6 +86,15 @@ class StoresProvider implements StoresProviderInterface
     }
 
     /**
+     * @return void
+     */
+    public function cleanCache(): void
+    {
+        $this->configItems = null;
+        $this->cachedConfigItemFilter = [];
+    }
+
+    /**
      * @return array<ConfigValue|DataObject>
      */
     private function getConfigItems(): array

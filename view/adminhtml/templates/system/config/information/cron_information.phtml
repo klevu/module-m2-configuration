@@ -1,0 +1,132 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Configuration\Block\Adminhtml\Config\Form\KlevuFieldset;
+use Klevu\Configuration\ViewModel\Config\Information\CronInformationInterface;
+
+/**
+ * @var KlevuFieldset $block
+ * @var CronInformationInterface $viewModel
+ */
+$viewModel = $block->getViewModel();
+$escaper = $block->getEscaper();
+
+$cronExecutionData = $viewModel->getCronExecutionData();
+?>
+
+<?php foreach ($viewModel->getMessages() as $type => $messages): ?>
+    <?php foreach ($messages as $message): ?>
+        <div class="message message message-<?= $escaper->escapeHtmlAttr($type) ?>">
+            <?= $escaper->escapeHtml($message->render()) ?>
+        </div>
+    <?php endforeach; ?>
+<?php endforeach; ?>
+
+<?php foreach ($cronExecutionData as $jobCode => $data): ?>
+    <table class="klevu-cron-information">
+        <caption><?= $escaper->escapeHtml($jobCode) ?></caption>
+        <tbody>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Schedule')) ?></th>
+                <td><?= $escaper->escapeHtml($data['schedule'] ?? '') ?></td>
+            </tr>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Last Successful Execution')) ?></th>
+                <?php $lastSuccess = $data['last_successful_execution']['finished_at'] ?? __('n/a'); ?>
+                <td><?= $escaper->escapeHtml($lastSuccess) ?></td>
+            </tr>
+            <tr>
+                <th><?= $escaper->escapeHtml(__('Next Execution')) ?></th>
+
+                <?php if (!empty($data['next_scheduled_execution']['started_at'])): ?>
+                    <?php $startedAt = $data['next_scheduled_execution']['started_at']; ?>
+                    <td><?= $escaper->escapeHtml(__('Running since: %1', $startedAt)); ?></td>
+                <?php else: ?>
+                    <?php $nextScheduled = $data['next_scheduled_execution']['scheduled_at'] ?? __('n/a'); ?>
+                    <td><?= $escaper->escapeHtml($nextScheduled) ?></td>
+                <?php endif; ?>
+            </tr>
+        </tbody>
+    </table>
+<?php endforeach ?>
+
+<style>
+    table.klevu-cron-information {
+        width: 100%;
+        border-collapse: collapse;
+        border: solid 1px #f5f5f5;
+        background-color: #fff;
+        margin-bottom: 30px;
+    }
+
+    table.klevu-cron-information caption {
+        background-color: #000;
+        color: #fff;
+        border: 0.1rem solid #666666;
+        padding: 15px;
+        font-weight: 700;
+    }
+
+    .klevu-cron-information thead tr,
+    .klevu-cron-information tfoot tr {
+        border: solid 1px #f5f5f5;
+    }
+
+    .klevu-cron-information thead th {
+        background-color: #000;
+        color: #fff;
+        text-align: left;
+        border: 0.1rem solid #666666;
+    }
+
+    .klevu-cron-information tbody th {
+        text-align: left;
+        width: 40%;
+    }
+
+    .klevu-cron-information tfoot th,
+    .klevu-cron-information tr:nth-child(2n) {
+        background-color: #fff;
+    }
+
+    .klevu-cron-information tr:nth-child(2n-1) {
+        background-color: #f5f5f5;
+    }
+
+    .klevu-cron-information tbody tr:hover {
+        background-color: #e5f7fe;
+    }
+
+    .klevu-cron-information tbody td {
+        border-left: 0.1rem dashed #d6d6d6;
+        border-right: 0.1rem dashed #d6d6d6;
+    }
+
+    .klevu-cron-information tbody td ul {
+        margin: 0 10px
+    }
+
+    .klevu-cron-information tbody td:nth-child(1) {
+        text-align: left;
+    }
+
+    .klevu-cron-information tbody td.klevu-attribute-bool {
+        text-align: center;
+    }
+    .klevu-cron-information tbody td.klevu-attribute-bool_yes {
+        background-color: #d4edda;
+    }
+    .klevu-cron-information tbody td.klevu-attribute-bool_no {
+        background-color: #f8d7da;
+    }
+
+    .accordion .form-inline .config .klevu-cron-information th,
+    .accordion .form-inline .config .klevu-cron-information td {
+        padding: 1.5rem;
+    }
+</style>

@@ -18,7 +18,12 @@ interface ModuleVersionsInterface extends FieldsetInterface
     public function hasVersions(): bool;
 
     /**
-     * @return string[]|null
+     * @return array<string, string>|null
      */
     public function getVersions(): ?array;
+
+    /**
+     * @return array<string, string>|null
+     */
+    public function getLibraryVersions(): ?array;
 }

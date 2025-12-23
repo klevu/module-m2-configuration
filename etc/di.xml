@@ -61,6 +61,9 @@
     <preference for="Klevu\Configuration\Service\Provider\AuthKeyProviderInterface"
                 type="Klevu\Configuration\Service\Provider\AuthKeyProvider"/>
 
+    <preference for="Klevu\Configuration\Service\Provider\CronExecutionDataProviderInterface"
+                type="Klevu\Configuration\Service\Provider\CronExecutionDataProvider"/>
+
     <preference for="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProviderInterface"
                 type="Klevu\Configuration\Service\Provider\OtherIntegratedScopesProvider"/>
 
