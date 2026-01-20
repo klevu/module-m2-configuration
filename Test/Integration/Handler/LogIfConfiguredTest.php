@@ -22,9 +22,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Api\WebsiteRepositoryInterface;
 use Magento\Store\Model\Store;
 use Magento\TestFramework\ObjectManager;
-// phpcs:ignore SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces.NonFullyQualified
 use Monolog\Handler\HandlerInterface;
-// phpcs:ignore SlevomatCodingStandard.Namespaces.UseOnlyWhitelistedNamespaces.NonFullyQualified
 use Monolog\Level;
 use Monolog\Logger;
 use Monolog\LogRecord;
@@ -306,7 +304,7 @@ class LogIfConfiguredTest extends TestCase
     {
         if (class_exists(LogRecord::class)) {
             $this->markTestSkipped(
-                'This test is not applicable for LogRecord, as it does not support invalid log levels.'
+                'This test is not applicable for LogRecord, as it does not support invalid log levels.',
             );
         }
 
@@ -336,7 +334,7 @@ class LogIfConfiguredTest extends TestCase
     {
         if (class_exists(LogRecord::class)) {
             $this->markTestSkipped(
-                'This test is not applicable for LogRecord, as it does not support invalid log levels.'
+                'This test is not applicable for LogRecord, as it does not support invalid log levels.',
             );
         }
 
